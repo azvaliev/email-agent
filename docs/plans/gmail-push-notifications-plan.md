@@ -577,8 +577,8 @@ See `docs/gcp-setup.md` for Google Cloud configuration commands.
 
 ### Phase 4: Integration
 
-10. [ ] Add `databaseHooks` to `src/lib/auth.ts`
-11. [ ] Create webhook handler at `src/app/api/webhook/gmail/route.ts`
+10. [x] Add `databaseHooks` to `src/lib/auth.ts`
+11. [x] Create webhook handler at `src/app/api/webhook/gmail/route.ts`
 
 ### Phase 5: GCP & Deployment
 

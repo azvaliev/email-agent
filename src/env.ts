@@ -6,6 +6,8 @@ const envSchema = z.object({
   BETTER_AUTH_URL: z.string().url(),
   GOOGLE_CLIENT_ID: z.string().min(1),
   GOOGLE_CLIENT_SECRET: z.string().min(1),
+  GOOGLE_CLOUD_PROJECT: z.string().min(1),
+  GMAIL_PUBSUB_TOPIC: z.string().startsWith("projects/"),
 });
 
 export const env = envSchema.parse({
@@ -14,4 +16,6 @@ export const env = envSchema.parse({
   BETTER_AUTH_URL: process.env.BETTER_AUTH_URL,
   GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
   GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
+  GOOGLE_CLOUD_PROJECT: process.env.GOOGLE_CLOUD_PROJECT,
+  GMAIL_PUBSUB_TOPIC: process.env.GMAIL_PUBSUB_TOPIC,
 });

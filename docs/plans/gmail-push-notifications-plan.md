@@ -88,6 +88,7 @@ Add to `.env.example`:
 # Google Cloud Pub/Sub (for Gmail push notifications)
 GOOGLE_CLOUD_PROJECT=your-gcp-project-id
 GMAIL_PUBSUB_TOPIC=projects/your-project/topics/gmail-notifications
+GMAIL_PUBSUB_SERVICE_ACCOUNT_EMAIL=something@something.iam.gserviceaccount.com
 ```
 
 **Note:** The webhook URL is derived from `BETTER_AUTH_URL` + `/api/webhook/gmail`
@@ -101,9 +102,7 @@ src/
 ├── lib/
 │   ├── auth.ts                    # Add databaseHooks
 │   ├── gmail/
-│   │   ├── client.ts              # Gmail API client wrapper
-│   │   ├── watch.ts               # watch() and stop() functions
-│   │   ├── token-refresh.ts       # Refresh access token logic
+│   │   ├── client.ts              # GmailClient class (watch, stop, refreshAccessToken)
 │   │   └── webhook-verification.ts # JWT verification
 │   └── db/
 │       └── user-scoped-client.ts  # UserScopedDB class
@@ -546,16 +545,16 @@ See `docs/gcp-setup.md` for Google Cloud configuration commands.
 ## Implementation Order
 
 ### Phase 1: Foundation
-1. [ ] Add new environment variables to `env.ts` and `.env.example`
-2. [ ] Install dependencies (`googleapis`, `google-auth-library`)
-3. [ ] Create database migration for `gmail_watch_registration`
-4. [ ] Run migration and regenerate types
+1. [x] Add new environment variables to `env.ts` and `.env.example`
+2. [x] Install dependencies (`googleapis`, `google-auth-library`)
+3. [x] Create database migration for `gmail_watch_registration`
+4. [x] Run migration and regenerate types
 
 ### Phase 2: Core Gmail Integration
-5. [ ] Implement `src/lib/gmail/client.ts`
-6. [ ] Implement `src/lib/gmail/watch.ts`
-7. [ ] Implement `src/lib/gmail/token-refresh.ts`
-8. [ ] Implement `src/lib/gmail/webhook-verification.ts`
+5. [x] Implement `src/lib/gmail/client.ts`
+6. [x] Implement `src/lib/gmail/watch.ts`
+7. [x] Implement `src/lib/gmail/token-refresh.ts`
+8. [x] Implement `src/lib/gmail/webhook-verification.ts`
 
 ### Phase 3: Database Layer
 9. [ ] Implement `src/lib/db/user-scoped-client.ts`

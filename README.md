@@ -77,6 +77,8 @@ cp .env.example .env
    - `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`: OAuth credentials from Google Cloud Console.
      Create a Web OAuth client, add `http://localhost:3000/api/auth/callback/google` to
      Authorized redirect URIs, then paste the ID/secret here.
+   - `GOOGLE_CLOUD_PROJECT`: Your GCP project ID
+   - `GMAIL_PUBSUB_TOPIC`: Full Pub/Sub topic name (e.g., `projects/your-project/topics/gmail-notifications`)
 
 2. Install dependencies and migrate the database:
 
@@ -85,7 +87,14 @@ yarn install
 yarn db:migrate
 ```
 
-3. Start the Next.js dev server:
+3. **Set up Google Cloud Platform** for Gmail push notifications:
+
+   See [docs/gcp-setup.md](docs/gcp-setup.md) for detailed instructions on configuring:
+   - Pub/Sub topic for Gmail notifications
+   - Push subscription with authentication
+   - Required IAM permissions
+
+4. Start the Next.js dev server:
 
 ```bash
 yarn dev

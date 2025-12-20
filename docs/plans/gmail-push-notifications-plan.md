@@ -68,6 +68,8 @@ Gmail → Cloud Pub/Sub Topic → Push Subscription → /api/webhook/gmail → P
 - `user_id` FK → user.id ON DELETE CASCADE
 - `email_address` is indexed (for webhook lookups)
 
+**Convention:** Database uses snake_case columns. Kysely uses `CamelCasePlugin` to auto-convert, so TypeScript code uses camelCase (e.g., `emailAddress` → `email_address`).
+
 ---
 
 ## New Dependencies
@@ -228,6 +230,8 @@ export async function verifyPubSubJwt(
 
 Methods take only the parameters they need. The webhook handler looks up by email address, not user ID.
 
+**Note:** We use `CamelCasePlugin` in Kysely, so table/column names in code are camelCase while the database uses snake_case.
+
 ```typescript
 import { Kysely } from "kysely";
 import type { DB } from "@app/db/generated/schema";
@@ -237,25 +241,22 @@ export class DBClient {
 
   // Gmail watch registrations
 
-  /** Look up by email - used by webhook handler */
   getWatchRegistrationByEmail(emailAddress: string) {
     return this.db
-      .selectFrom("gmail_watch_registration")
+      .selectFrom("gmailWatchRegistration")
       .where("emailAddress", "=", emailAddress)
       .selectAll()
       .executeTakeFirst();
   }
 
-  /** Get all registrations for a user */
   getWatchRegistrationsByUserId(userId: string) {
     return this.db
-      .selectFrom("gmail_watch_registration")
+      .selectFrom("gmailWatchRegistration")
       .where("userId", "=", userId)
       .selectAll()
       .execute();
   }
 
-  /** Create registration when Google account is linked */
   createWatchRegistration(data: {
     userId: string;
     accountId: string;
@@ -264,7 +265,7 @@ export class DBClient {
     expiration: Date;
   }) {
     return this.db
-      .insertInto("gmail_watch_registration")
+      .insertInto("gmailWatchRegistration")
       .values({
         id: crypto.randomUUID(),
         ...data,
@@ -275,13 +276,12 @@ export class DBClient {
       .executeTakeFirstOrThrow();
   }
 
-  /** Update historyId and optionally expiration */
   updateWatchRegistration(
     id: string,
     data: { historyId: string; expiration?: Date },
   ) {
     return this.db
-      .updateTable("gmail_watch_registration")
+      .updateTable("gmailWatchRegistration")
       .set({
         historyId: data.historyId,
         ...(data.expiration && { expiration: data.expiration }),
@@ -293,16 +293,6 @@ export class DBClient {
 
   // Accounts
 
-  /** Get account by ID - used to get refresh token */
-  getAccountById(accountId: string) {
-    return this.db
-      .selectFrom("account")
-      .where("id", "=", accountId)
-      .selectAll()
-      .executeTakeFirst();
-  }
-
-  /** Update tokens after refresh */
   updateAccountTokens(
     accountId: string,
     data: { accessToken: string; accessTokenExpiresAt: Date },

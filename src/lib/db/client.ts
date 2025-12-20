@@ -10,7 +10,7 @@ export class DBClient {
    */
   getWatchRegistrationByEmail(emailAddress: string) {
     return this.db
-      .selectFrom("gmail_watch_registration")
+      .selectFrom("gmailWatchRegistration")
       .where("emailAddress", "=", emailAddress)
       .selectAll()
       .executeTakeFirst();
@@ -21,7 +21,7 @@ export class DBClient {
    */
   getWatchRegistrationsByUserId(userId: string) {
     return this.db
-      .selectFrom("gmail_watch_registration")
+      .selectFrom("gmailWatchRegistration")
       .where("userId", "=", userId)
       .selectAll()
       .execute();
@@ -38,7 +38,7 @@ export class DBClient {
     expiration: Date;
   }) {
     return this.db
-      .insertInto("gmail_watch_registration")
+      .insertInto("gmailWatchRegistration")
       .values({
         id: crypto.randomUUID(),
         userId: data.userId,
@@ -62,7 +62,7 @@ export class DBClient {
     data: { historyId: string; expiration?: Date },
   ) {
     return this.db
-      .updateTable("gmail_watch_registration")
+      .updateTable("gmailWatchRegistration")
       .set({
         historyId: data.historyId,
         ...(data.expiration && { expiration: data.expiration }),

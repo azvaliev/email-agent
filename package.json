@@ -15,7 +15,7 @@
     "db:migrate:down": "kysely migrate:down --all",
     "db:migrate:new": "kysely migrate:make",
     "db:migrate:list": "kysely migrate:list",
-    "db:codegen": "kysely-codegen --dialect postgres --out-file src/db/generated/schema.ts"
+    "db:codegen": "kysely-codegen --dialect postgres --camel-case --out-file src/db/generated/schema.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.0.0",

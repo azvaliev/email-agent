@@ -582,8 +582,8 @@ See `docs/gcp-setup.md` for Google Cloud configuration commands.
 
 ### Phase 5: GCP & Deployment
 
-12. [ ] Create GCP Pub/Sub topic and subscription
-13. [ ] Document GCP setup in `docs/gcp-setup.md`
+12. [x] Create GCP Pub/Sub topic and subscription
+13. [x] Document GCP setup in `docs/gcp-setup.md`
 14. [ ] Deploy to Vercel
 15. [ ] Test end-to-end
 

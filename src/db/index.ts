@@ -1,11 +1,7 @@
-import { Kysely } from "kysely";
-import { PostgresJSDialect } from "kysely-postgres-js";
-import postgres from "postgres";
+import { Kysely, PostgresDialect } from "kysely";
 import type { DB } from "./generated/schema";
-import { env } from "@app/env";
-
-const pg = postgres(env.DATABASE_URL);
+import { dbPool } from "@app/lib/db-pool";
 
 export const db = new Kysely<DB>({
-  dialect: new PostgresJSDialect({ postgres: pg }),
+  dialect: new PostgresDialect({ pool: dbPool }),
 });

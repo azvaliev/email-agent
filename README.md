@@ -67,7 +67,25 @@ Copy the `.env.example` file to `.env`
 cp .env.example .env
 ```
 
-Start the Next.JS dev server by running
+### Environment setup
+
+1. Edit `.env` and fill in the required variables:
+   - `DATABASE_URL`: connection string for your Postgres instance. The same URL is reused by
+     Kysely migrations and better-auth.
+   - `BETTER_AUTH_SECRET`: at least 32 random characters. Generate one with `openssl rand -base64 32`.
+   - `BETTER_AUTH_URL`: the public URL of your app (http://localhost:3000 during development).
+   - `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`: OAuth credentials from Google Cloud Console.
+     Create a Web OAuth client, add `http://localhost:3000/api/auth/callback/google` to
+     Authorized redirect URIs, then paste the ID/secret here.
+
+2. Install dependencies and migrate the database:
+
+```bash
+yarn install
+yarn db:migrate
+```
+
+3. Start the Next.js dev server:
 
 ```bash
 yarn dev

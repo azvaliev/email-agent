@@ -1,10 +1,10 @@
 import { defineConfig } from "kysely-ctl";
-import { PostgresJSDialect } from "kysely-postgres-js";
-import postgres from "postgres";
+import { PostgresDialect } from "kysely";
+import { Pool } from "pg";
 
 export default defineConfig({
-  dialect: new PostgresJSDialect({
-    postgres: postgres(process.env.DATABASE_URL!),
+  dialect: new PostgresDialect({
+    pool: new Pool({ connectionString: process.env.DATABASE_URL }),
   }),
   migrations: {
     migrationFolder: "migrations",

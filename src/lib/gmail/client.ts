@@ -29,7 +29,7 @@ export class GmailClient {
       requestBody: {
         topicName,
         labelIds: ["INBOX"],
-        labelFilterBehavior: "include",
+        labelFilterBehavior: "INCLUDE",
       },
     });
 

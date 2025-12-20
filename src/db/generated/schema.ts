@@ -5,10 +5,9 @@
 
 import type { ColumnType } from "kysely";
 
-export type Generated<T> =
-  T extends ColumnType<infer S, infer I, infer U>
-    ? ColumnType<S, I | undefined, U>
-    : ColumnType<T, T | undefined, T>;
+export type Generated<T> = T extends ColumnType<infer S, infer I, infer U>
+  ? ColumnType<S, I | undefined, U>
+  : ColumnType<T, T | undefined, T>;
 
 export type Timestamp = ColumnType<Date, Date | string, Date | string>;
 
@@ -25,6 +24,17 @@ export interface Account {
   refreshTokenExpiresAt: Timestamp | null;
   scope: string | null;
   updatedAt: Timestamp;
+  userId: string;
+}
+
+export interface GmailWatchRegistration {
+  accountId: string;
+  createdAt: Generated<Timestamp>;
+  emailAddress: string;
+  expiration: Timestamp;
+  historyId: string;
+  id: string;
+  updatedAt: Generated<Timestamp>;
   userId: string;
 }
 
@@ -60,6 +70,7 @@ export interface Verification {
 
 export interface DB {
   account: Account;
+  gmail_watch_registration: GmailWatchRegistration;
   session: Session;
   user: User;
   verification: Verification;

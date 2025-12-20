@@ -4,7 +4,7 @@ import { dbPool } from "@app/lib/db-pool";
 
 export const auth = betterAuth({
   database: dbPool,
-  baseURL: env.BETTER_AUTH_URL,
+  baseUrl: env.BETTER_AUTH_URL,
   secret: env.BETTER_AUTH_SECRET,
   socialProviders: {
     google: {

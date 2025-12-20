@@ -3078,6 +3078,7 @@ __metadata:
     lucide-react: "npm:^0.562.0"
     next: "npm:16.1.0"
     pg: "npm:^8.16.3"
+    postcss: "npm:^8.5.6"
     postgres: "npm:^3.4.7"
     prettier: "npm:^3"
     react: "npm:19.2.3"

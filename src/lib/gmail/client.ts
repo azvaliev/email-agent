@@ -21,7 +21,9 @@ export class GmailClient {
     this.gmail = google.gmail({ version: "v1", auth: this.oauth2Client });
   }
 
-  async watch(topicName: string): Promise<{ historyId: string; expiration: Date }> {
+  async watch(
+    topicName: string,
+  ): Promise<{ historyId: string; expiration: Date }> {
     const response = await this.gmail.users.watch({
       userId: "me",
       requestBody: {
@@ -51,7 +53,10 @@ export class GmailClient {
     await this.gmail.users.stop({ userId: "me" });
   }
 
-  async refreshAccessToken(): Promise<{ accessToken: string; expiresAt: Date }> {
+  async refreshAccessToken(): Promise<{
+    accessToken: string;
+    expiresAt: Date;
+  }> {
     const { credentials } = await this.oauth2Client.refreshAccessToken();
 
     if (!credentials.access_token) {

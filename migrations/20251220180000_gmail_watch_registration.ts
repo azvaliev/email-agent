@@ -35,9 +35,7 @@ export async function up(db: Kysely<unknown>): Promise<void> {
 }
 
 export async function down(db: Kysely<unknown>): Promise<void> {
-  await db.schema
-    .dropIndex("gmail_watch_registration_userId_idx")
-    .execute();
+  await db.schema.dropIndex("gmail_watch_registration_userId_idx").execute();
   await db.schema
     .dropIndex("gmail_watch_registration_emailAddress_idx")
     .execute();

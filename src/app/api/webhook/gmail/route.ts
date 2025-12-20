@@ -3,6 +3,9 @@ import { verifyPubSubJwt } from "@app/lib/gmail/webhook-verification";
 import { GmailClient } from "@app/lib/gmail/client";
 import { db } from "@app/db";
 import { env } from "@app/env";
+import { getLogger } from "@app/lib/logger";
+
+const logger = getLogger({ category: "gmail-webhook" });
 
 interface PubSubMessage {
   message: {
@@ -48,7 +51,10 @@ export async function POST(request: NextRequest) {
     .executeTakeFirst();
 
   if (!registration) {
-    console.warn("No registration found for:", notification.emailAddress);
+    logger.warn(
+      { emailAddress: notification.emailAddress },
+      "No registration found for email address",
+    );
     return NextResponse.json({ ok: true }); // Acknowledge anyway
   }
 
@@ -101,19 +107,28 @@ export async function POST(request: NextRequest) {
           .where("id", "=", registration.id)
           .execute();
 
-        console.log("Watch renewed for:", notification.emailAddress);
+        logger.info(
+          { emailAddress: notification.emailAddress },
+          "Watch renewed",
+        );
       } catch (error) {
-        console.error("Failed to refresh watch:", error);
+        logger.error(
+          { err: error, emailAddress: notification.emailAddress },
+          "Failed to refresh watch",
+        );
       }
     }
   }
 
   // 5. Process the notification
-  console.log("Gmail notification:", {
-    email: notification.emailAddress,
-    historyId: notification.historyId,
-    previousHistoryId: registration.historyId,
-  });
+  logger.info(
+    {
+      emailAddress: notification.emailAddress,
+      historyId: notification.historyId,
+      previousHistoryId: registration.historyId,
+    },
+    "Gmail notification received",
+  );
 
   // TODO: Fetch new emails using history.list API
   // This is where we'd add email processing logic

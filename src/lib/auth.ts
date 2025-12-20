@@ -3,6 +3,9 @@ import { env } from "../env";
 import { dbPool } from "@app/lib/db-pool";
 import { db } from "@app/db";
 import { GmailClient } from "./gmail/client";
+import { getLogger } from "./logger";
+
+const logger = getLogger({ category: "auth" });
 
 const REQUIRED_GMAIL_SCOPE = "https://www.googleapis.com/auth/gmail.readonly";
 const GMAIL_SCOPE_ERROR_MESSAGE =
@@ -122,9 +125,9 @@ export const auth = betterAuth({
               .execute();
           } catch (error) {
             // Watch setup failed - delete the account to maintain consistency
-            console.error(
-              "Failed to setup Gmail watch, rolling back account:",
-              error,
+            logger.error(
+              { err: error, accountId: account.id },
+              "Failed to setup Gmail watch, rolling back account",
             );
             await db.deleteFrom("account").where("id", "=", account.id).execute();
 
@@ -150,7 +153,10 @@ export const auth = betterAuth({
             }
             // Registration will be deleted via CASCADE
           } catch (error) {
-            console.error("Failed to stop Gmail watch:", error);
+            logger.error(
+              { err: error, accountId: account.id },
+              "Failed to stop Gmail watch",
+            );
             // Don't throw - account deletion should still proceed
           }
         },

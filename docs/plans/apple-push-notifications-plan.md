@@ -191,20 +191,20 @@ Handle two events in `public/sw.js`:
 
 ### Phase 1: PWA Foundation ✅
 
-1. [x] Update `manifest.json` with `"display": "standalone"` and icons
-2. [x] Create `use-pwa-status.ts` hook
-3. [x] Create `install-pwa-prompt.tsx` component
-4. [x] Add PWA gate to dashboard layout
-5. [x] Create `public/sw.js` with push and click handlers
-6. [x] Register service worker in app entry point
+- [x] Update `manifest.json` with `"display": "standalone"` and icons
+- [x] Create `use-pwa-status.ts` hook
+- [x] Create `install-pwa-prompt.tsx` component
+- [x] Add PWA gate to dashboard layout
+- [x] Create `public/sw.js` with push and click handlers
+- [x] Register service worker in app entry point
 
 ### Phase 2: Push Infrastructure
 
-7. [ ] Add VAPID env vars to `env.ts` and `.env.example`
-8. [ ] Generate VAPID keys (`npx @pushforge/builder generate-vapid-keys`)
-9. [ ] Install `@pushforge/builder`
-10. [ ] Create database migration for `push_subscription`
-11. [ ] Run migration and regenerate types
+- [ ] Add VAPID env vars to `env.ts` and `.env.example`
+- [ ] Generate VAPID keys (`npx @pushforge/builder generate-vapid-keys`)
+- [ ] Install `@pushforge/builder`
+- [ ] Create database migration for `push_subscription`
+- [ ] Run migration and regenerate types
 
 ### Phase 3: Service Worker (Completed in Phase 1)
 
@@ -212,23 +212,23 @@ _(Moved to Phase 1 for earlier availability)_
 
 ### Phase 4: Subscription Flow
 
-12. [ ] Implement `src/lib/push/vapid.ts`
-13. [ ] Implement `src/lib/push/client.ts` (browser-side)
-14. [ ] Create `/api/push/subscribe` endpoint
-15. [ ] Create `/api/push/unsubscribe` endpoint
-16. [ ] Add notification toggle UI to settings/dashboard
+- [ ] Implement `src/lib/push/vapid.ts`
+- [ ] Implement `src/lib/push/client.ts` (browser-side)
+- [ ] Create `/api/push/subscribe` endpoint
+- [ ] Create `/api/push/unsubscribe` endpoint
+- [ ] Add notification toggle UI to settings/dashboard
 
 ### Phase 5: Sending Notifications
 
-17. [ ] Implement `src/lib/push/send-notification.ts`
-18. [ ] Integrate with Gmail webhook (send push for important emails)
+- [ ] Implement `src/lib/push/send-notification.ts`
+- [ ] Integrate with Gmail webhook (send push for important emails)
 
 ### Phase 6: Testing
 
-19. [ ] Test on iOS Safari (installed PWA)
-20. [ ] Test on Android Chrome
-21. [ ] Test on desktop browsers
-22. [ ] Verify expired subscription cleanup (410 handling)
+- [ ] Test on iOS Safari (installed PWA)
+- [ ] Test on Android Chrome
+- [ ] Test on desktop browsers
+- [ ] Verify expired subscription cleanup (410 handling)
 
 ---
 

@@ -144,14 +144,9 @@ export class GmailClient {
       format: "full",
     });
 
-    if (!response.ok) {
-      let error: string = "unknown error occured";
-      try {
-        error = await response.text();
-      } catch {}
-
+    if (!response.data) {
       throw new Error(
-        `${response.status} Failed to fetch message ${messageId}: ${error}`,
+        `${response.status} Failed to fetch message ${messageId}: no data returned`,
       );
     }
 

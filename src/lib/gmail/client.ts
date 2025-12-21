@@ -1,6 +1,7 @@
 import { google, gmail_v1 } from "googleapis";
 import { OAuth2Client } from "google-auth-library";
 import { env } from "@app/env";
+import { getLogger } from "../logger";
 
 type ValidGmailMessage = Omit<gmail_v1.Schema$Message, "id"> & { id: string };
 type ParsedGmailMessage = {
@@ -228,16 +229,31 @@ export class GmailClient {
       return null;
     }
 
+    const logger = getLogger({ category: "extract-gmail-message-body" });
+
     // Simple message with body directly on payload
     if (payload.body?.data) {
-      return Buffer.from(payload.body.data, "base64").toString("utf-8");
+      try {
+        return Buffer.from(payload.body.data, "base64").toString("utf-8");
+      } catch (error) {
+        logger.error({ error }, "Failed to decode message body");
+        return null;
+      }
     }
 
     // Multipart message - look for text/plain part
     if (payload.parts) {
       for (const part of payload.parts) {
         if (part.mimeType === "text/plain" && part.body?.data) {
-          return Buffer.from(part.body.data, "base64").toString("utf-8");
+          try {
+            return Buffer.from(part.body.data, "base64").toString("utf-8");
+          } catch (error) {
+            logger.error(
+              { error, fileName: part.filename },
+              "Failed to decode multipart message body",
+            );
+            return null;
+          }
         }
         // Nested multipart (e.g., multipart/alternative inside multipart/mixed)
         if (part.parts) {
@@ -250,7 +266,15 @@ export class GmailClient {
       // Fallback to text/html if no plain text
       for (const part of payload.parts) {
         if (part.mimeType === "text/html" && part.body?.data) {
-          return Buffer.from(part.body.data, "base64").toString("utf-8");
+          try {
+            return Buffer.from(part.body.data, "base64").toString("utf-8");
+          } catch (error) {
+            logger.error(
+              { error, fileName: part.filename },
+              "Failed to decode message body as plaintext",
+            );
+            return null;
+          }
         }
       }
     }

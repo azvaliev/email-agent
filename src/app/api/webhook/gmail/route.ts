@@ -158,6 +158,10 @@ async function parseAndValidatePayload(
   // Verify JWT
   const authHeader = request.headers.get("authorization");
   if (!authHeader?.startsWith("Bearer ")) {
+    logger.warn(
+      { hasAuthHeader: !!authHeader },
+      "Missing or malformed Authorization header",
+    );
     return {
       success: false,
       response: NextResponse.json({ error: "Unauthorized" }, { status: 401 }),
@@ -169,6 +173,7 @@ async function parseAndValidatePayload(
 
   const isValid = await verifyPubSubJwt(token, webhookUrl);
   if (!isValid) {
+    logger.warn({ webhookUrl }, "Invalid Pub/Sub JWT token");
     return {
       success: false,
       response: NextResponse.json({ error: "Invalid token" }, { status: 401 }),
@@ -179,7 +184,8 @@ async function parseAndValidatePayload(
   let body: PubSubMessage;
   try {
     body = await request.json();
-  } catch {
+  } catch (error) {
+    logger.warn({ err: error }, "Failed to parse request JSON");
     return {
       success: false,
       response: NextResponse.json({ error: "Invalid JSON" }, { status: 400 }),
@@ -190,7 +196,11 @@ async function parseAndValidatePayload(
   try {
     const decoded = Buffer.from(body.message.data, "base64").toString("utf-8");
     notification = JSON.parse(decoded);
-  } catch {
+  } catch (error) {
+    logger.warn(
+      { err: error, messageId: body.message.messageId },
+      "Failed to decode notification payload",
+    );
     return {
       success: false,
       response: NextResponse.json(

@@ -166,7 +166,8 @@ async function parseAndValidatePayload(
   }
 
   const token = authHeader.slice(7);
-  const webhookUrl = `${env.BETTER_AUTH_URL}/api/webhook/gmail`;
+  const baseUrl = env.BETTER_AUTH_URL.replace(/\/+$/, "");
+  const webhookUrl = `${baseUrl}/api/webhook/gmail`;
 
   const isValid = await verifyPubSubJwt(token, webhookUrl);
   if (!isValid) {

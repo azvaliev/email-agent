@@ -363,16 +363,16 @@ export const auth = betterAuth({
             }
 
             await db
-              .insertInto("gmail_watch_registration")
+              .insertInto("gmailWatchRegistration")
               .values({
                 id: crypto.randomUUID(),
-                account_id: account.id,
-                user_id: account.userId,
-                email_address: user.email,
-                history_id: historyId,
+                accountId: account.id,
+                userId: account.userId,
+                emailAddress: user.email,
+                historyId,
                 expiration,
-                created_at: new Date(),
-                updated_at: new Date(),
+                createdAt: new Date(),
+                updatedAt: new Date(),
               })
               .execute();
           } catch (error) {
@@ -461,8 +461,8 @@ export async function POST(request: NextRequest) {
 
   // 3. Find registration
   const registration = await db
-    .selectFrom("gmail_watch_registration")
-    .where("email_address", "=", notification.emailAddress)
+    .selectFrom("gmailWatchRegistration")
+    .where("emailAddress", "=", notification.emailAddress)
     .selectAll()
     .executeTakeFirst();
 
@@ -478,24 +478,24 @@ export async function POST(request: NextRequest) {
     // Need to refresh
     const account = await db
       .selectFrom("account")
-      .where("id", "=", registration.account_id)
+      .where("id", "=", registration.accountId)
       .selectAll()
       .executeTakeFirst();
 
-    if (account?.refresh_token) {
+    if (account?.refreshToken) {
       try {
         // Refresh the access token
         const { accessToken, expiresAt } = await refreshGoogleAccessToken(
-          account.refresh_token,
+          account.refreshToken,
         );
 
         // Update account with new token
         await db
           .updateTable("account")
           .set({
-            access_token: accessToken,
-            access_token_expires_at: expiresAt,
-            updated_at: new Date(),
+            accessToken,
+            accessTokenExpiresAt: expiresAt,
+            updatedAt: new Date(),
           })
           .where("id", "=", account.id)
           .execute();
@@ -508,11 +508,11 @@ export async function POST(request: NextRequest) {
 
         // Update registration
         await db
-          .updateTable("gmail_watch_registration")
+          .updateTable("gmailWatchRegistration")
           .set({
-            history_id: historyId,
+            historyId,
             expiration,
-            updated_at: new Date(),
+            updatedAt: new Date(),
           })
           .where("id", "=", registration.id)
           .execute();
@@ -526,7 +526,7 @@ export async function POST(request: NextRequest) {
   console.log("Gmail notification:", {
     email: notification.emailAddress,
     historyId: notification.historyId,
-    previousHistoryId: registration.history_id,
+    previousHistoryId: registration.historyId,
   });
 
   // TODO: Fetch new emails using history.list API
@@ -534,10 +534,10 @@ export async function POST(request: NextRequest) {
 
   // 6. Update historyId
   await db
-    .updateTable("gmail_watch_registration")
+    .updateTable("gmailWatchRegistration")
     .set({
-      history_id: notification.historyId,
-      updated_at: new Date(),
+      historyId: notification.historyId,
+      updatedAt: new Date(),
     })
     .where("id", "=", registration.id)
     .execute();

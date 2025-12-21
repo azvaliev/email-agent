@@ -198,7 +198,7 @@ export class GmailClient {
       return { user: null, email: null };
     }
 
-    const emailStart = from.indexOf("<");
+    const emailStart = from.lastIndexOf("<");
 
     // Bare email: "user@example.com"
     if (emailStart === -1) {

@@ -1,5 +1,13 @@
 import { z } from "zod";
 
+const jwkSchema = z.object({
+  kty: z.string(),
+  crv: z.string(),
+  x: z.string(),
+  y: z.string(),
+  d: z.string(),
+});
+
 const envSchema = z.object({
   DATABASE_URL: z.string().url(),
   BETTER_AUTH_SECRET: z.string().min(32),
@@ -10,7 +18,22 @@ const envSchema = z.object({
   GMAIL_PUBSUB_TOPIC: z.string().startsWith("projects/"),
   GMAIL_PUBSUB_SERVICE_ACCOUNT_EMAIL: z.string().email(),
   NEXT_PUBLIC_VAPID_PUBLIC_KEY: z.string().min(1),
-  VAPID_PRIVATE_JWK: z.string().startsWith("{"),
+  VAPID_PRIVATE_JWK: z.string().pipe(
+    z
+      .string()
+      .transform((str, ctx) => {
+        try {
+          return JSON.parse(str);
+        } catch {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "VAPID_PRIVATE_JWK must be valid JSON",
+          });
+          return z.NEVER;
+        }
+      })
+      .pipe(jwkSchema),
+  ),
   VAPID_SUBJECT: z.string().regex(/^(mailto:|https:\/\/)/),
 });
 

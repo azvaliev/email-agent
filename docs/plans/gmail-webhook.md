@@ -49,23 +49,26 @@ Gmail → Cloud Pub/Sub Topic → Push Subscription → /api/webhook/gmail → P
 
 ### New Table: `gmail_watch_registration`
 
-| Column | Type | Nullable | Description |
-|--------|------|----------|-------------|
-| `id` | `text` | NOT NULL | Primary key (UUID) |
-| `account_id` | `text` | NOT NULL | FK → account.id (1:1, unique) |
-| `user_id` | `text` | NOT NULL | FK → user.id (denormalized for easier queries) |
-| `email_address` | `text` | NOT NULL | Gmail address being watched |
-| `history_id` | `text` | NOT NULL | Last known historyId from Gmail |
-| `expiration` | `timestamptz` | NOT NULL | When the watch expires (from Google) |
-| `created_at` | `timestamptz` | NOT NULL | When watch was created (default: now()) |
-| `updated_at` | `timestamptz` | NOT NULL | Last update time |
+| Column          | Type          | Nullable | Description                                    |
+| --------------- | ------------- | -------- | ---------------------------------------------- |
+| `id`            | `text`        | NOT NULL | Primary key (UUID)                             |
+| `account_id`    | `text`        | NOT NULL | FK → account.id (1:1, unique)                  |
+| `user_id`       | `text`        | NOT NULL | FK → user.id (denormalized for easier queries) |
+| `email_address` | `text`        | NOT NULL | Gmail address being watched                    |
+| `history_id`    | `text`        | NOT NULL | Last known historyId from Gmail                |
+| `expiration`    | `timestamptz` | NOT NULL | When the watch expires (from Google)           |
+| `created_at`    | `timestamptz` | NOT NULL | When watch was created (default: now())        |
+| `updated_at`    | `timestamptz` | NOT NULL | Last update time                               |
 
 **Constraints:**
+
 - `id` is PRIMARY KEY
 - `account_id` is UNIQUE (one watch per account)
 - `account_id` FK → account.id ON DELETE CASCADE
 - `user_id` FK → user.id ON DELETE CASCADE
 - `email_address` is indexed (for webhook lookups)
+
+**Convention:** Database uses snake_case columns. Kysely uses `CamelCasePlugin` to auto-convert, so TypeScript code uses camelCase (e.g., `emailAddress` → `email_address`).
 
 ---
 
@@ -88,6 +91,7 @@ Add to `.env.example`:
 # Google Cloud Pub/Sub (for Gmail push notifications)
 GOOGLE_CLOUD_PROJECT=your-gcp-project-id
 GMAIL_PUBSUB_TOPIC=projects/your-project/topics/gmail-notifications
+GMAIL_PUBSUB_SERVICE_ACCOUNT_EMAIL=something@something.iam.gserviceaccount.com
 ```
 
 **Note:** The webhook URL is derived from `BETTER_AUTH_URL` + `/api/webhook/gmail`
@@ -101,12 +105,10 @@ src/
 ├── lib/
 │   ├── auth.ts                    # Add databaseHooks
 │   ├── gmail/
-│   │   ├── client.ts              # Gmail API client wrapper
-│   │   ├── watch.ts               # watch() and stop() functions
-│   │   ├── token-refresh.ts       # Refresh access token logic
+│   │   ├── client.ts              # GmailClient class (watch, stop, refreshAccessToken)
 │   │   └── webhook-verification.ts # JWT verification
 │   └── db/
-│       └── user-scoped-client.ts  # UserScopedDB class
+│       └── client.ts              # DBClient class
 ├── app/
 │   └── api/
 │       └── webhook/
@@ -122,12 +124,12 @@ src/
 ### 1. Gmail Client Wrapper (`src/lib/gmail/client.ts`)
 
 ```typescript
-import { google } from 'googleapis';
+import { google } from "googleapis";
 
 export function createGmailClient(accessToken: string) {
   const auth = new google.auth.OAuth2();
   auth.setCredentials({ access_token: accessToken });
-  return google.gmail({ version: 'v1', auth });
+  return google.gmail({ version: "v1", auth });
 }
 ```
 
@@ -141,11 +143,11 @@ export async function setupGmailWatch(params: {
   const gmail = createGmailClient(params.accessToken);
 
   const response = await gmail.users.watch({
-    userId: 'me',
+    userId: "me",
     requestBody: {
       topicName: params.topicName,
-      labelIds: ['INBOX'],
-      labelFilterBehavior: 'INCLUDE',
+      labelIds: ["INBOX"],
+      labelFilterBehavior: "INCLUDE",
     },
   });
 
@@ -157,7 +159,7 @@ export async function setupGmailWatch(params: {
 
 export async function stopGmailWatch(accessToken: string): Promise<void> {
   const gmail = createGmailClient(accessToken);
-  await gmail.users.stop({ userId: 'me' });
+  await gmail.users.stop({ userId: "me" });
 }
 ```
 
@@ -168,11 +170,11 @@ export async function refreshGoogleAccessToken(refreshToken: string): Promise<{
   accessToken: string;
   expiresAt: Date;
 }> {
-  const response = await fetch('https://oauth2.googleapis.com/token', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+  const response = await fetch("https://oauth2.googleapis.com/token", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: new URLSearchParams({
-      grant_type: 'refresh_token',
+      grant_type: "refresh_token",
       refresh_token: refreshToken,
       client_id: env.GOOGLE_CLIENT_ID,
       client_secret: env.GOOGLE_CLIENT_SECRET,
@@ -198,98 +200,94 @@ Google Pub/Sub sends a JWT in the `Authorization: Bearer <token>` header. We ver
 4. Token is not expired
 
 ```typescript
-import { OAuth2Client } from 'google-auth-library';
+import { OAuth2Client } from "google-auth-library";
 
 const client = new OAuth2Client();
 
-export async function verifyPubSubJwt(token: string, audience: string): Promise<boolean> {
-  try {
-    const ticket = await client.verifyIdToken({
-      idToken: token,
-      audience,
-    });
-    const payload = ticket.getPayload();
-
-    // Verify it's from Google Pub/Sub
-    return payload?.email_verified === true &&
-           payload?.email?.endsWith('.iam.gserviceaccount.com');
-  } catch {
-    return false;
-  }
+export async function verifyPubSubJwt(
+  token: string,
+  audience: string,
+): Promise<boolean> {
+  // verify ID token
+  // check email
 }
 ```
 
-### 5. UserScopedDB (`src/lib/db/user-scoped-client.ts`)
+### 5. DBClient (`src/lib/db/client.ts`)
+
+Methods take only the parameters they need. The webhook handler looks up by email address, not user ID.
+
+**Note:** We use `CamelCasePlugin` in Kysely, so table/column names in code are camelCase while the database uses snake_case.
 
 ```typescript
-import { Kysely } from 'kysely';
-import { DB } from '@app/db/generated/schema';
+import { Kysely } from "kysely";
+import type { DB } from "@app/db/generated/schema";
 
-export class UserScopedDB {
-  constructor(
-    private db: Kysely<DB>,
-    private userId: string
-  ) {}
+export class DBClient {
+  constructor(private db: Kysely<DB>) {}
 
   // Gmail watch registrations
-  getWatchRegistration() {
-    return this.db
-      .selectFrom('gmail_watch_registration')
-      .where('user_id', '=', this.userId)
-      .selectAll();
-  }
 
-  getWatchRegistrationByAccountId(accountId: string) {
+  getWatchRegistrationByEmail(emailAddress: string) {
     return this.db
-      .selectFrom('gmail_watch_registration')
-      .where('user_id', '=', this.userId)
-      .where('account_id', '=', accountId)
+      .selectFrom("gmailWatchRegistration")
+      .where("emailAddress", "=", emailAddress)
       .selectAll()
       .executeTakeFirst();
   }
 
+  getWatchRegistrationsByUserId(userId: string) {
+    return this.db
+      .selectFrom("gmailWatchRegistration")
+      .where("userId", "=", userId)
+      .selectAll()
+      .execute();
+  }
+
   createWatchRegistration(data: {
+    userId: string;
     accountId: string;
     emailAddress: string;
     historyId: string;
     expiration: Date;
   }) {
     return this.db
-      .insertInto('gmail_watch_registration')
+      .insertInto("gmailWatchRegistration")
       .values({
         id: crypto.randomUUID(),
-        user_id: this.userId,
-        account_id: data.accountId,
-        email_address: data.emailAddress,
-        history_id: data.historyId,
-        expiration: data.expiration,
-        created_at: new Date(),
-        updated_at: new Date(),
+        ...data,
+        createdAt: new Date(),
+        updatedAt: new Date(),
       })
       .returningAll()
       .executeTakeFirstOrThrow();
   }
 
-  updateWatchExpiration(accountId: string, historyId: string, expiration: Date) {
+  updateWatchRegistration(
+    id: string,
+    data: { historyId: string; expiration?: Date },
+  ) {
     return this.db
-      .updateTable('gmail_watch_registration')
+      .updateTable("gmailWatchRegistration")
       .set({
-        history_id: historyId,
-        expiration: expiration,
-        updated_at: new Date(),
+        historyId: data.historyId,
+        ...(data.expiration && { expiration: data.expiration }),
+        updatedAt: new Date(),
       })
-      .where('user_id', '=', this.userId)
-      .where('account_id', '=', accountId)
+      .where("id", "=", id)
       .execute();
   }
 
-  // Accounts (better-auth managed, but we can read)
-  getGoogleAccounts() {
+  // Accounts
+
+  updateAccountTokens(
+    accountId: string,
+    data: { accessToken: string; accessTokenExpiresAt: Date },
+  ) {
     return this.db
-      .selectFrom('account')
-      .where('user_id', '=', this.userId)
-      .where('provider_id', '=', 'google')
-      .selectAll()
+      .updateTable("account")
+      .set({ ...data, updatedAt: new Date() })
+      .where("id", "=", accountId)
       .execute();
   }
 }
@@ -314,16 +312,16 @@ export const auth = betterAuth({
       create: {
         before: async (account) => {
           // Only Google accounts are allowed
-          if (account.providerId !== 'google') {
-            throw new APIError('BAD_REQUEST', {
-              message: 'Only Google accounts are supported',
+          if (account.providerId !== "google") {
+            throw new APIError("BAD_REQUEST", {
+              message: "Only Google accounts are supported",
             });
           }
 
           // Block insertion if missing required token
           if (!account.accessToken) {
-            throw new APIError('BAD_REQUEST', {
-              message: 'Google account must have an access token',
+            throw new APIError("BAD_REQUEST", {
+              message: "Google account must have an access token",
             });
           }
 
@@ -342,46 +340,48 @@ export const auth = betterAuth({
 
             // Get email from the user table
             const user = await db
-              .selectFrom('user')
-              .where('id', '=', account.userId)
-              .select('email')
+              .selectFrom("user")
+              .where("id", "=", account.userId)
+              .select("email")
               .executeTakeFirst();
 
             if (!user?.email) {
-              throw new Error('User must have an email address');
+              throw new Error("User must have an email address");
             }
 
             await db
-              .insertInto('gmail_watch_registration')
+              .insertInto("gmailWatchRegistration")
               .values({
                 id: crypto.randomUUID(),
-                account_id: account.id,
-                user_id: account.userId,
-                email_address: user.email,
-                history_id: historyId,
+                accountId: account.id,
+                userId: account.userId,
+                emailAddress: user.email,
+                historyId,
                 expiration,
-                created_at: new Date(),
-                updated_at: new Date(),
+                createdAt: new Date(),
+                updatedAt: new Date(),
               })
               .execute();
-
           } catch (error) {
             // Watch setup failed - delete the account to maintain consistency
-            console.error('Failed to setup Gmail watch, rolling back account:', error);
+            console.error(
+              "Failed to setup Gmail watch, rolling back account:",
+              error,
+            );
             await db
-              .deleteFrom('account')
-              .where('id', '=', account.id)
+              .deleteFrom("account")
+              .where("id", "=", account.id)
               .execute();
 
-            throw new APIError('INTERNAL_SERVER_ERROR', {
-              message: 'Failed to setup Gmail notifications. Please try again.',
+            throw new APIError("INTERNAL_SERVER_ERROR", {
+              message: "Failed to setup Gmail notifications. Please try again.",
             });
           }
         },
       },
       delete: {
         before: async (account) => {
-          if (account.providerId !== 'google') {
+          if (account.providerId !== "google") {
             return;
           }
 
@@ -392,7 +392,7 @@ export const auth = betterAuth({
 
             // Registration will be deleted via CASCADE
           } catch (error) {
-            console.error('Failed to stop Gmail watch:', error);
+            console.error("Failed to stop Gmail watch:", error);
             // Don't throw - account deletion should still proceed
           }
         },
@@ -405,12 +405,12 @@ export const auth = betterAuth({
 ### 7. Webhook Handler (`src/app/api/webhook/gmail/route.ts`)
 
 ```typescript
-import { NextRequest, NextResponse } from 'next/server';
-import { verifyPubSubJwt } from '@app/lib/gmail/webhook-verification';
-import { refreshGoogleAccessToken } from '@app/lib/gmail/token-refresh';
-import { setupGmailWatch } from '@app/lib/gmail/watch';
-import { db } from '@app/db';
-import { env } from '@app/env';
+import { NextRequest, NextResponse } from "next/server";
+import { verifyPubSubJwt } from "@app/lib/gmail/webhook-verification";
+import { refreshGoogleAccessToken } from "@app/lib/gmail/token-refresh";
+import { setupGmailWatch } from "@app/lib/gmail/watch";
+import { db } from "@app/db";
+import { env } from "@app/env";
 
 interface PubSubMessage {
   message: {
@@ -428,9 +428,9 @@ interface GmailNotification {
 
 export async function POST(request: NextRequest) {
   // 1. Verify JWT
-  const authHeader = request.headers.get('authorization');
-  if (!authHeader?.startsWith('Bearer ')) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  const authHeader = request.headers.get("authorization");
+  if (!authHeader?.startsWith("Bearer ")) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const token = authHeader.slice(7);
@@ -438,23 +438,23 @@ export async function POST(request: NextRequest) {
 
   const isValid = await verifyPubSubJwt(token, webhookUrl);
   if (!isValid) {
-    return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
+    return NextResponse.json({ error: "Invalid token" }, { status: 401 });
   }
 
   // 2. Parse payload
   const body: PubSubMessage = await request.json();
-  const decoded = Buffer.from(body.message.data, 'base64').toString('utf-8');
+  const decoded = Buffer.from(body.message.data, "base64").toString("utf-8");
   const notification: GmailNotification = JSON.parse(decoded);
 
   // 3. Find registration
   const registration = await db
-    .selectFrom('gmail_watch_registration')
-    .where('email_address', '=', notification.emailAddress)
+    .selectFrom("gmailWatchRegistration")
+    .where("emailAddress", "=", notification.emailAddress)
     .selectAll()
     .executeTakeFirst();
 
   if (!registration) {
-    console.warn('No registration found for:', notification.emailAddress);
+    console.warn("No registration found for:", notification.emailAddress);
     return NextResponse.json({ ok: true }); // Acknowledge anyway
   }
 
@@ -464,27 +464,27 @@ export async function POST(request: NextRequest) {
   if (registration.expiration <= threeDaysFromNow) {
     // Need to refresh
     const account = await db
-      .selectFrom('account')
-      .where('id', '=', registration.account_id)
+      .selectFrom("account")
+      .where("id", "=", registration.accountId)
       .selectAll()
       .executeTakeFirst();
 
-    if (account?.refresh_token) {
+    if (account?.refreshToken) {
       try {
         // Refresh the access token
         const { accessToken, expiresAt } = await refreshGoogleAccessToken(
-          account.refresh_token
+          account.refreshToken,
         );
 
         // Update account with new token
         await db
-          .updateTable('account')
+          .updateTable("account")
           .set({
-            access_token: accessToken,
-            access_token_expires_at: expiresAt,
-            updated_at: new Date(),
+            accessToken,
+            accessTokenExpiresAt: expiresAt,
+            updatedAt: new Date(),
           })
-          .where('id', '=', account.id)
+          .where("id", "=", account.id)
           .execute();
 
         // Re-setup watch
@@ -495,26 +495,25 @@ export async function POST(request: NextRequest) {
 
         // Update registration
         await db
-          .updateTable('gmail_watch_registration')
+          .updateTable("gmailWatchRegistration")
           .set({
-            history_id: historyId,
+            historyId,
             expiration,
-            updated_at: new Date(),
+            updatedAt: new Date(),
           })
-          .where('id', '=', registration.id)
+          .where("id", "=", registration.id)
           .execute();
-
       } catch (error) {
-        console.error('Failed to refresh watch:', error);
+        console.error("Failed to refresh watch:", error);
       }
     }
   }
 
   // 5. Process the notification
-  console.log('Gmail notification:', {
+  console.log("Gmail notification:", {
     email: notification.emailAddress,
     historyId: notification.historyId,
-    previousHistoryId: registration.history_id,
+    previousHistoryId: registration.historyId,
   });
 
   // TODO: Fetch new emails using history.list API
@@ -522,12 +521,12 @@ export async function POST(request: NextRequest) {
 
   // 6. Update historyId
   await db
-    .updateTable('gmail_watch_registration')
+    .updateTable("gmailWatchRegistration")
     .set({
-      history_id: notification.historyId,
-      updated_at: new Date(),
+      historyId: notification.historyId,
+      updatedAt: new Date(),
     })
-    .where('id', '=', registration.id)
+    .where("id", "=", registration.id)
     .execute();
 
   // 7. Acknowledge
@@ -546,27 +545,32 @@ See `docs/gcp-setup.md` for Google Cloud configuration commands.
 ## Implementation Order
 
 ### Phase 1: Foundation
-1. [ ] Add new environment variables to `env.ts` and `.env.example`
-2. [ ] Install dependencies (`googleapis`, `google-auth-library`)
-3. [ ] Create database migration for `gmail_watch_registration`
-4. [ ] Run migration and regenerate types
+
+1. [x] Add new environment variables to `env.ts` and `.env.example`
+2. [x] Install dependencies (`googleapis`, `google-auth-library`)
+3. [x] Create database migration for `gmail_watch_registration`
+4. [x] Run migration and regenerate types
 
 ### Phase 2: Core Gmail Integration
-5. [ ] Implement `src/lib/gmail/client.ts`
-6. [ ] Implement `src/lib/gmail/watch.ts`
-7. [ ] Implement `src/lib/gmail/token-refresh.ts`
-8. [ ] Implement `src/lib/gmail/webhook-verification.ts`
+
+5. [x] Implement `src/lib/gmail/client.ts`
+6. [x] Implement `src/lib/gmail/watch.ts`
+7. [x] Implement `src/lib/gmail/token-refresh.ts`
+8. [x] Implement `src/lib/gmail/webhook-verification.ts`
 
 ### Phase 3: Database Layer
-9. [ ] Implement `src/lib/db/user-scoped-client.ts`
+
+9. [x] Implement `src/lib/db/client.ts`
 
 ### Phase 4: Integration
-10. [ ] Add `databaseHooks` to `src/lib/auth.ts`
-11. [ ] Create webhook handler at `src/app/api/webhook/gmail/route.ts`
+
+10. [x] Add `databaseHooks` to `src/lib/auth.ts`
+11. [x] Create webhook handler at `src/app/api/webhook/gmail/route.ts`
 
 ### Phase 5: GCP & Deployment
-12. [ ] Create GCP Pub/Sub topic and subscription
-13. [ ] Document GCP setup in `docs/gcp-setup.md`
+
+12. [x] Create GCP Pub/Sub topic and subscription
+13. [x] Document GCP setup in `docs/gcp-setup.md`
 14. [ ] Deploy to Vercel
 15. [ ] Test end-to-end
 

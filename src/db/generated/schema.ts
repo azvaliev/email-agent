@@ -28,6 +28,17 @@ export interface Account {
   userId: string;
 }
 
+export interface GmailWatchRegistration {
+  accountId: string;
+  createdAt: Generated<Timestamp>;
+  emailAddress: string;
+  expiration: Timestamp;
+  historyId: string;
+  id: string;
+  updatedAt: Generated<Timestamp>;
+  userId: string;
+}
+
 export interface Session {
   createdAt: Generated<Timestamp>;
   expiresAt: Timestamp;
@@ -60,6 +71,7 @@ export interface Verification {
 
 export interface DB {
   account: Account;
+  gmailWatchRegistration: GmailWatchRegistration;
   session: Session;
   user: User;
   verification: Verification;

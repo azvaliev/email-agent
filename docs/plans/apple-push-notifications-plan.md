@@ -14,12 +14,12 @@ Backend (PushForge) → Apple/Google Push Service → User's PWA (ServiceWorker)
 
 ## Architecture
 
-| Component | Purpose |
-|-----------|---------|
-| **VAPID Keys** | Keypair for authenticating with push services (generated once) |
-| **Service Worker** | Receives push events, displays notifications |
-| **Push Subscription** | Per-device endpoint + keys stored in our DB |
-| **PushForge** | Server-side library to build and send notifications |
+| Component             | Purpose                                                        |
+| --------------------- | -------------------------------------------------------------- |
+| **VAPID Keys**        | Keypair for authenticating with push services (generated once) |
+| **Service Worker**    | Receives push events, displays notifications                   |
+| **Push Subscription** | Per-device endpoint + keys stored in our DB                    |
+| **PushForge**         | Server-side library to build and send notifications            |
 
 ### Flow: Subscription
 
@@ -58,7 +58,9 @@ Detect standalone mode using media query + iOS-specific property:
 
 ```typescript
 function isPWAInstalled(): boolean {
-  const standaloneMedia = window.matchMedia('(display-mode: standalone)').matches;
+  const standaloneMedia = window.matchMedia(
+    "(display-mode: standalone)",
+  ).matches;
   const iosStandalone = ((navigator as any)?.standalone ?? false) === true;
   return standaloneMedia || iosStandalone;
 }
@@ -72,17 +74,18 @@ Create a `usePWAStatus()` hook using `useMemo` (value won't change during sessio
 
 ### New Table: `push_subscription`
 
-| Column | Type | Nullable | Description |
-|--------|------|----------|-------------|
-| `id` | `text` | NOT NULL | Primary key (UUID) |
-| `user_id` | `text` | NOT NULL | FK → user.id |
-| `endpoint` | `text` | NOT NULL | Push service URL (unique per device) |
-| `p256dh` | `text` | NOT NULL | Device's public key (browser-generated) |
-| `auth` | `text` | NOT NULL | Device's auth secret (browser-generated) |
-| `user_agent` | `text` | NULL | Device info (for display in settings) |
-| `created_at` | `timestamptz` | NOT NULL | When subscription was created |
+| Column       | Type          | Nullable | Description                              |
+| ------------ | ------------- | -------- | ---------------------------------------- |
+| `id`         | `text`        | NOT NULL | Primary key (UUID)                       |
+| `user_id`    | `text`        | NOT NULL | FK → user.id                             |
+| `endpoint`   | `text`        | NOT NULL | Push service URL (unique per device)     |
+| `p256dh`     | `text`        | NOT NULL | Device's public key (browser-generated)  |
+| `auth`       | `text`        | NOT NULL | Device's auth secret (browser-generated) |
+| `user_agent` | `text`        | NULL     | Device info (for display in settings)    |
+| `created_at` | `timestamptz` | NOT NULL | When subscription was created            |
 
 **Constraints:**
+
 - `endpoint` is UNIQUE (one subscription per device)
 - `user_id` FK → user.id ON DELETE CASCADE
 - A user can have multiple subscriptions (phone, tablet, desktop)
@@ -99,6 +102,7 @@ npx @pushforge/builder generate-vapid-keys
 ```
 
 This outputs:
+
 - **Public key** (base64url string) → `NEXT_PUBLIC_VAPID_PUBLIC_KEY`
 - **Private key** (JWK object) → `VAPID_PRIVATE_JWK`
 
@@ -147,6 +151,7 @@ Using [PushForge](https://github.com/draphy/pushforge/blob/master/packages/build
 See [MDN PushManager](https://developer.mozilla.org/en-US/docs/Web/API/PushManager):
 
 **On app load (sync with server):**
+
 1. Check browser support (`'PushManager' in window`)
 2. Get service worker registration (`navigator.serviceWorker.ready`)
 3. Call `pushManager.getSubscription()` to check existing subscription
@@ -154,6 +159,7 @@ See [MDN PushManager](https://developer.mozilla.org/en-US/docs/Web/API/PushManag
 5. If null → show "Enable Notifications" button
 
 **When user enables notifications:**
+
 1. Request permission (`Notification.requestPermission()`)
 2. If granted → call `pushManager.subscribe()`, POST to server
 3. If denied → show toast explaining some functionality will be limited (with action to retry if user changes mind)
@@ -171,6 +177,7 @@ Use shadcn [Sonner](https://ui.shadcn.com/docs/components/sonner) for the toast.
 See [MDN Service Worker push event](https://developer.mozilla.org/en-US/docs/Web/API/ServiceWorkerGlobalScope/push_event):
 
 Handle two events in `public/sw.js`:
+
 - `push` - parse the payload, call `self.registration.showNotification()`
 - `notificationclick` - close notification, focus or open window with target URL
 
@@ -182,24 +189,29 @@ Handle two events in `public/sw.js`:
 
 ## Implementation Order
 
-### Phase 1: PWA Foundation
-1. [ ] Update `manifest.json` with `"display": "standalone"` and icons
-2. [ ] Create `use-pwa-status.ts` hook
-3. [ ] Create `install-pwa-prompt.tsx` component
-4. [ ] Add PWA gate to dashboard layout
+### Phase 1: PWA Foundation ✅
+
+1. [x] Update `manifest.json` with `"display": "standalone"` and icons
+2. [x] Create `use-pwa-status.ts` hook
+3. [x] Create `install-pwa-prompt.tsx` component
+4. [x] Add PWA gate to dashboard layout
+5. [x] Create `public/sw.js` with push and click handlers
+6. [x] Register service worker in app entry point
 
 ### Phase 2: Push Infrastructure
-5. [ ] Add VAPID env vars to `env.ts` and `.env.example`
-6. [ ] Generate VAPID keys (`npx @pushforge/builder generate-vapid-keys`)
-7. [ ] Install `@pushforge/builder`
-8. [ ] Create database migration for `push_subscription`
-9. [ ] Run migration and regenerate types
 
-### Phase 3: Service Worker
-10. [ ] Create `public/sw.js` with push and click handlers
-11. [ ] Register service worker in app entry point
+7. [ ] Add VAPID env vars to `env.ts` and `.env.example`
+8. [ ] Generate VAPID keys (`npx @pushforge/builder generate-vapid-keys`)
+9. [ ] Install `@pushforge/builder`
+10. [ ] Create database migration for `push_subscription`
+11. [ ] Run migration and regenerate types
+
+### Phase 3: Service Worker (Completed in Phase 1)
+
+_(Moved to Phase 1 for earlier availability)_
 
 ### Phase 4: Subscription Flow
+
 12. [ ] Implement `src/lib/push/vapid.ts`
 13. [ ] Implement `src/lib/push/client.ts` (browser-side)
 14. [ ] Create `/api/push/subscribe` endpoint
@@ -207,10 +219,12 @@ Handle two events in `public/sw.js`:
 16. [ ] Add notification toggle UI to settings/dashboard
 
 ### Phase 5: Sending Notifications
+
 17. [ ] Implement `src/lib/push/send-notification.ts`
 18. [ ] Integrate with Gmail webhook (send push for important emails)
 
 ### Phase 6: Testing
+
 19. [ ] Test on iOS Safari (installed PWA)
 20. [ ] Test on Android Chrome
 21. [ ] Test on desktop browsers

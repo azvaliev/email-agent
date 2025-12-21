@@ -53,7 +53,7 @@
       "type": "image/webp"
     }
   ],
-  "start_url": "/dashboard",
+  "start_url": "/app/dashboard",
   "scope": "/",
   "display": "standalone",
   "background_color": "#09090b",

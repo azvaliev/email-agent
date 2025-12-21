@@ -74,9 +74,9 @@ Create a `usePWAStatus()` hook using `useMemo` (value won't change during sessio
 
 ### New Table: `push_subscription`
 
-| Column       | Type          | Nullable | Description                              |
-| ------------ | ------------- | -------- | ---------------------------------------- |
-| `id`         | `text`        | NOT NULL | Primary key (UUID)                       |
+| Column       | Type          | Nullable | Description                                    |
+| ------------ | ------------- | -------- | ---------------------------------------------- |
+| `id`         | `uuid`        | NOT NULL | Primary key (default: `gen_random_uuid()`)     |
 | `user_id`    | `text`        | NOT NULL | FK → user.id                             |
 | `endpoint`   | `text`        | NOT NULL | Push service URL (unique per device)     |
 | `p256dh`     | `text`        | NOT NULL | Device's public key (browser-generated)  |
@@ -94,7 +94,6 @@ Create a `usePWAStatus()` hook using `useMemo` (value won't change during sessio
 **Indexes:**
 
 - `CREATE INDEX push_subscription_user_id_idx ON push_subscription(user_id)` - enables efficient queries fetching a user's subscriptions
-- `CREATE INDEX push_subscription_created_at_idx ON push_subscription(created_at)` - enables efficient age-based cleanup queries
 
 ---
 

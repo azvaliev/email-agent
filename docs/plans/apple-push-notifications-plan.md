@@ -54,7 +54,7 @@ Backend (PushForge) → Apple/Google Push Service → User's PWA (ServiceWorker)
 
 ### Detection
 
-Detect standalone mode using media query + iOS-specific property:
+Detect standalone mode using media query + [iOS-specific property](https://developer.apple.com/library/archive/documentation/AppleApplications/Reference/SafariWebContent/ConfiguringWebApplications/ConfiguringWebApplications.html):
 
 ```typescript
 function isPWAInstalled(): boolean {

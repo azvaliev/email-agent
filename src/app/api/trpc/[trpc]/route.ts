@@ -17,7 +17,7 @@ const handler = (req: Request) =>
           err: error,
           path,
           type,
-          ...(ctx?.session?.user?.id && { userId: ctx.session.user.id }),
+          userId: ctx?.session?.user?.id,
         },
         "tRPC error",
       );

@@ -48,7 +48,7 @@ export const pushRouter = router({
           {
             err: error,
             userId,
-            endpoint: endpointPrefix,
+            endpoint: input.endpoint,
             ...(isMissingTable && {
               hint: "Did you run the push_subscription migration?",
             }),

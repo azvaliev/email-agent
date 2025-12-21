@@ -23,7 +23,10 @@ export async function verifyPubSubJwt(
 
     if (payload?.email !== env.GMAIL_PUBSUB_SERVICE_ACCOUNT_EMAIL) {
       logger.warn(
-        { expected: env.GMAIL_PUBSUB_SERVICE_ACCOUNT_EMAIL, actual: payload?.email },
+        {
+          expected: env.GMAIL_PUBSUB_SERVICE_ACCOUNT_EMAIL,
+          actual: payload?.email,
+        },
         "JWT email mismatch",
       );
       return false;

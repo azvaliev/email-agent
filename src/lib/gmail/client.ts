@@ -1,6 +1,20 @@
 import { google, gmail_v1 } from "googleapis";
 import { OAuth2Client } from "google-auth-library";
 import { env } from "@app/env";
+import { getLogger } from "../logger";
+
+type ValidGmailMessage = Omit<gmail_v1.Schema$Message, "id"> & { id: string };
+type ParsedGmailMessage = {
+  id: string;
+  threadId: string | null;
+  subject: string | null;
+  from: string | null;
+  fromEmail: string | null;
+  fromUser: string | null;
+  date: string | null;
+  body: string | null;
+  snippet: string | null;
+};
 
 export class GmailClient {
   private oauth2Client: OAuth2Client;
@@ -81,7 +95,12 @@ export class GmailClient {
    */
   async getNewMessages(startHistoryId: string) {
     const messageIds = await this.listHistory(startHistoryId);
-    return Promise.all(messageIds.map((id) => this.getMessage(id)));
+    return Promise.all(
+      messageIds.map(async (id) => {
+        const rawMessage = await this.getMessage(id);
+        return GmailClient.parseMessage(rawMessage);
+      }),
+    );
   }
 
   /**
@@ -119,39 +138,85 @@ export class GmailClient {
     return [...messageIds];
   }
 
-  /**
-   * Get a message by ID with full content.
-   */
-  async getMessage(messageId: string): Promise<{
-    id: string;
-    threadId: string | null;
-    subject: string | null;
-    from: string | null;
-    date: string | null;
-    body: string | null;
-    snippet: string | null;
-  }> {
+  async getMessage(messageId: string): Promise<ValidGmailMessage> {
     const response = await this.gmail.users.messages.get({
       userId: "me",
       id: messageId,
       format: "full",
     });
 
-    const headers = response.data.payload?.headers ?? [];
+    if (!response.ok) {
+      let error: string = "unknown error occured";
+      try {
+        error = await response.text();
+      } catch {}
+
+      throw new Error(
+        `${response.status} Failed to fetch message ${messageId}: ${error}`,
+      );
+    }
+
+    return {
+      ...response.data,
+      id: response.data.id ?? messageId,
+    };
+  }
+
+  /**
+   * Get a message by ID with full content.
+   */
+  static parseMessage({
+    payload,
+    id,
+    threadId,
+    snippet,
+  }: ValidGmailMessage): ParsedGmailMessage {
+    const logger = getLogger({ category: "message-parser" });
+
+    const headers = payload?.headers ?? [];
     const getHeader = (name: string) =>
       headers.find((h) => h.name?.toLowerCase() === name.toLowerCase())
         ?.value ?? null;
 
-    const body = this.extractBody(response.data.payload);
+    const body = this.extractGmailMessageBody(payload);
+    const from = getHeader("From");
+    const [fromUser, fromEmail] = ((): [string | null, string | null] => {
+      let name: string | null = null;
+      let email: string | null = null;
+
+      if (!from) {
+        logger.error("Email was missing from header");
+        return [name, email];
+      }
+
+      const emailStart = from.indexOf("<");
+      if (emailStart === -1) {
+        logger.error("Email starting character < missing from header");
+        return [name, email];
+      }
+
+      name = from.slice(0, emailStart).trim() || null;
+      const emailEnd = from.lastIndexOf(">");
+
+      if (emailEnd === -1 || emailEnd < emailStart) {
+        return [name, null];
+      }
+
+      email = from.slice(emailStart + 1, emailEnd).trim() || null;
+
+      return [name, email];
+    })();
 
     return {
-      id: response.data.id ?? messageId,
-      threadId: response.data.threadId ?? null,
+      id,
+      threadId: threadId ?? null,
       subject: getHeader("Subject"),
-      from: getHeader("From"),
+      from,
+      fromUser,
+      fromEmail,
       date: getHeader("Date"),
       body,
-      snippet: response.data.snippet ?? null,
+      snippet: snippet ?? null,
     };
   }
 
@@ -159,7 +224,7 @@ export class GmailClient {
    * Extract plain text body from message payload.
    * Handles both simple and multipart messages.
    */
-  private extractBody(
+  private static extractGmailMessageBody(
     payload: gmail_v1.Schema$MessagePart | undefined,
   ): string | null {
     if (!payload) {
@@ -179,7 +244,7 @@ export class GmailClient {
         }
         // Nested multipart (e.g., multipart/alternative inside multipart/mixed)
         if (part.parts) {
-          const nested = this.extractBody(part);
+          const nested = this.extractGmailMessageBody(part);
           if (nested) {
             return nested;
           }

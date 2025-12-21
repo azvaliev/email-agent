@@ -90,6 +90,8 @@ export async function POST(request: NextRequest) {
           messageId: message.id,
           subject: message.subject,
           from: message.from,
+          fromUser: message.fromUser,
+          fromEmail: message.fromEmail,
         },
         "New email",
       );

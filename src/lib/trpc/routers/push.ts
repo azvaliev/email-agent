@@ -19,7 +19,7 @@ export const pushRouter = router({
       const userAgent = ctx.headers.get("user-agent");
 
       try {
-        await dbClient.upsertPushSubscription({
+        const pushSubscription = await dbClient.upsertPushSubscription({
           userId,
           endpoint: input.endpoint,
           p256dh: input.p256dh,
@@ -28,35 +28,22 @@ export const pushRouter = router({
         });
 
         logger.info(
-          { userId, endpoint: input.endpoint },
+          { userId, pushSubscriptionId: pushSubscription.id },
           "Push subscription saved",
         );
 
         return { ok: true };
-      } catch (err) {
-        const error = err as Error;
-        const isMissingTable =
-          error.message.includes(
-            'relation "push_subscription" does not exist',
-          ) ||
-          error.message.includes(
-            'relation "pushSubscription" does not exist',
-          ) ||
-          error.message.includes("does not exist");
-
+      } catch (error) {
         logger.error(
           {
-            err: error,
+            error,
             userId,
             endpoint: input.endpoint,
-            ...(isMissingTable && {
-              hint: "Did you run the push_subscription migration?",
-            }),
           },
           "Failed to save push subscription",
         );
 
-        throw err;
+        throw error;
       }
     }),
 

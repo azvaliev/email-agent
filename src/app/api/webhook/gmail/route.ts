@@ -80,7 +80,7 @@ export async function POST(request: NextRequest) {
 
     logger.info(
       { emailAddress: notification.emailAddress, count: messages.length },
-      "Found new messages",
+      `Found ${messages.length} new messages`,
     );
 
     for (const message of messages) {

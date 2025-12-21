@@ -107,8 +107,9 @@ export function usePushNotifications(): UsePushNotificationsResult {
       const subscription = await getCurrentSubscription();
 
       if (subscription) {
-        const removedFromServer =
-          await removeSubscriptionFromServer(subscription.endpoint);
+        const removedFromServer = await removeSubscriptionFromServer(
+          subscription.endpoint,
+        );
         if (!removedFromServer) {
           return false;
         }

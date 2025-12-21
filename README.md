@@ -29,14 +29,16 @@ yarn install
 ```
 
 We have linting and formatting configured using eslint and prettier, respectively.
-To lint the code, run
+Tests are in Vitest
+
+To check for lint, format and tests run
 
 ```bash
-yarn lint
+yarn check
 
 ```
 
-To format the code, run
+To run formatting on the code, run
 
 ```bash
 yarn format

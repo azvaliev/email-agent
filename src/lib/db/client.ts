@@ -1,8 +1,20 @@
 import { Kysely } from "kysely";
 import type { DB } from "@app/db/generated/schema";
+import { db as kyselyDb } from "@app/db";
 
 export class DBClient {
   constructor(private db: Kysely<DB>) {}
+
+  /**
+   * Get an account by ID.
+   */
+  getAccountById(accountId: string) {
+    return this.db
+      .selectFrom("account")
+      .where("id", "=", accountId)
+      .selectAll()
+      .executeTakeFirst();
+  }
 
   /**
    * Look up a watch registration by email address.
@@ -90,3 +102,5 @@ export class DBClient {
       .execute();
   }
 }
+
+export const dbClient = new DBClient(kyselyDb);

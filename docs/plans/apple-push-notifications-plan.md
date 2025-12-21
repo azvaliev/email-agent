@@ -224,8 +224,8 @@ _(Moved to Phase 1 for earlier availability)_
 
 ### Phase 5: Sending Notifications
 
-- [ ] Implement `src/lib/push/send-notification.ts`
-- [ ] Create a basic first pass function that sends a notification for a new email (every email for now)
+- [x] Implement `src/lib/push/send-notification.ts`
+- [x] Create a basic first pass function that sends a notification for a new email (every email for now)
       We can just say **important email detected** and deeplink into apple mail using message://<Message-ID> URL scheme.
       That way tapping on the notification can (hopefully) open the email in Apple Mail.
 
@@ -265,6 +265,7 @@ iOS requires a real HTTPS certificate (not self-signed). Use ngrok or deploy to 
 ## Future Work
 
 1. **Settings UI** - Give users a place to easily enable/disable notifications
+2. **Cross-platform deep links** - Currently using `message://` URL scheme which only works on Apple devices. For Android/desktop, could send just the message ID in the payload and have the service worker handle platform-specific deep linking
 
 ---
 

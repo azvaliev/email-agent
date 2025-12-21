@@ -271,7 +271,7 @@ export class GmailClient {
           } catch (error) {
             logger.error(
               { error, fileName: part.filename },
-              "Failed to decode message body as plaintext",
+              "Failed to decode message body as HTML (text)",
             );
             return null;
           }

@@ -226,7 +226,9 @@ _(Moved to Phase 1 for earlier availability)_
 ### Phase 5: Sending Notifications
 
 - [ ] Implement `src/lib/push/send-notification.ts`
-- [ ] Integrate with Gmail webhook (send push for important emails)
+- [ ] Create a basic first pass function that sends a notification for a new email (every email for now)
+      We can just say **important email detected** and deeplink into apple mail using message://<Message-ID> URL scheme.
+      That way tapping on the notification can (hopefully) open the email in Apple Mail.
 
 ### Phase 6: Testing
 

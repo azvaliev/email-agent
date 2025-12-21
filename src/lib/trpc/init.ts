@@ -3,10 +3,11 @@ import { auth } from "@app/lib/auth";
 import { headers } from "next/headers";
 
 export const createTRPCContext = async () => {
+  const reqHeaders = await headers();
   const session = await auth.api.getSession({
-    headers: await headers(),
+    headers: reqHeaders,
   });
-  return { session };
+  return { session, headers: reqHeaders };
 };
 
 type Context = Awaited<ReturnType<typeof createTRPCContext>>;
@@ -25,6 +26,7 @@ export const authedProcedure = t.procedure.use(async ({ ctx, next }) => {
   return next({
     ctx: {
       session: ctx.session,
+      headers: ctx.headers,
     },
   });
 });

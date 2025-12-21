@@ -216,11 +216,11 @@ _(Moved to Phase 1 for earlier availability)_
 
 ### Phase 4: Subscription Flow
 
-- [ ] Implement `src/lib/push/vapid.ts`
-- [ ] Implement `src/lib/push/client.ts` (browser-side)
-- [ ] Create `/api/push/subscribe` endpoint
-- [ ] Create `/api/push/unsubscribe` endpoint
-- [ ] Add notification toggle UI to settings/dashboard
+- [x] Implement `src/lib/push/vapid.ts`
+- [x] Implement `src/lib/push/client.ts` (browser-side)
+- [x] Create `/api/push/subscribe` endpoint
+- [x] Create `/api/push/unsubscribe` endpoint
+- [x] Add notification toggle UI to settings/dashboard
 
 ### Phase 5: Sending Notifications
 

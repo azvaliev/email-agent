@@ -56,9 +56,16 @@ export class GmailClient {
       throw new Error("Gmail watch failed: no expiration returned");
     }
 
+    const expirationTimestamp = parseInt(expiration);
+    if (Number.isNaN(expirationTimestamp)) {
+      throw new Error(
+        `Gmail watch failed: invalid expiration timestamp ${expiration}`,
+      );
+    }
+
     return {
       historyId,
-      expiration: new Date(parseInt(expiration)),
+      expiration: new Date(expirationTimestamp),
     };
   }
 

@@ -16,7 +16,7 @@ function isPWAInstalled(): boolean {
   ).matches;
 
   const iosStandalone =
-    ((navigator as IOSNavigator).standalone ?? false) === true;
+    "standalone" in navigator && navigator.standalone === true;
 
   return standaloneMedia || iosStandalone;
 }

@@ -74,15 +74,15 @@ Create a `usePWAStatus()` hook using `useMemo` (value won't change during sessio
 
 ### New Table: `push_subscription`
 
-| Column       | Type          | Nullable | Description                                    |
-| ------------ | ------------- | -------- | ---------------------------------------------- |
-| `id`         | `uuid`        | NOT NULL | Primary key (default: `gen_random_uuid()`)     |
-| `user_id`    | `text`        | NOT NULL | FK → user.id                             |
-| `endpoint`   | `text`        | NOT NULL | Push service URL (unique per device)     |
-| `p256dh`     | `text`        | NOT NULL | Device's public key (browser-generated)  |
-| `auth`       | `text`        | NOT NULL | Device's auth secret (browser-generated) |
-| `user_agent` | `text`        | NULL     | Device info (for display in settings)    |
-| `created_at` | `timestamptz` | NOT NULL | When subscription was created            |
+| Column       | Type          | Nullable | Description                                |
+| ------------ | ------------- | -------- | ------------------------------------------ |
+| `id`         | `uuid`        | NOT NULL | Primary key (default: `gen_random_uuid()`) |
+| `user_id`    | `text`        | NOT NULL | FK → user.id                               |
+| `endpoint`   | `text`        | NOT NULL | Push service URL (unique per device)       |
+| `p256dh`     | `text`        | NOT NULL | Device's public key (browser-generated)    |
+| `auth`       | `text`        | NOT NULL | Device's auth secret (browser-generated)   |
+| `user_agent` | `text`        | NULL     | Device info (for display in settings)      |
+| `created_at` | `timestamptz` | NOT NULL | When subscription was created              |
 
 **Constraints:**
 

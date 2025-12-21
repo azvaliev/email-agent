@@ -208,21 +208,8 @@ export async function verifyPubSubJwt(
   token: string,
   audience: string,
 ): Promise<boolean> {
-  try {
-    const ticket = await client.verifyIdToken({
-      idToken: token,
-      audience,
-    });
-    const payload = ticket.getPayload();
-
-    // Verify it's from Google Pub/Sub
-    return (
-      payload?.email_verified === true &&
-      payload?.email?.endsWith(".iam.gserviceaccount.com")
-    );
-  } catch {
-    return false;
-  }
+  // verify ID token
+  // check email
 }
 ```
 

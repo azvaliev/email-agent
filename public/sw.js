@@ -53,6 +53,7 @@ self.addEventListener("push", (event) => {
       return;
     }
 
+    /** @type {unknown} */
     let rawPayload;
     try {
       rawPayload = event.data.json();

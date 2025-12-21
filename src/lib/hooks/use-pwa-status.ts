@@ -2,10 +2,6 @@
 
 import { useMemo } from "react";
 
-interface IOSNavigator extends Navigator {
-  standalone?: boolean;
-}
-
 function isPWAInstalled(): boolean {
   if (typeof window === "undefined") {
     return false;

@@ -1722,6 +1722,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@pushforge/builder@npm:^1.1.2":
+  version: 1.1.2
+  resolution: "@pushforge/builder@npm:1.1.2"
+  bin:
+    generate-vapid-keys: dist/lib/commandLine/keys.js
+  checksum: 10c0/d27148828548da094fa82725ae5c79d49ff1c626dc4203f7c60a2aad9a708f9b967e42372e1e260b1d200e66dc05ab7d0be4508796e025bac91f3fbc34f64246
+  languageName: node
+  linkType: hard
+
 "@rolldown/pluginutils@npm:1.0.0-beta.53":
   version: 1.0.0-beta.53
   resolution: "@rolldown/pluginutils@npm:1.0.0-beta.53"
@@ -3995,6 +4004,7 @@ __metadata:
   dependencies:
     "@base-ui/react": "npm:^1.0.0"
     "@prettier/plugin-oxc": "npm:^0.0.5"
+    "@pushforge/builder": "npm:^1.1.2"
     "@tailwindcss/postcss": "npm:^4"
     "@tanstack/react-query": "npm:^5.90.12"
     "@testing-library/dom": "npm:^10.4.1"

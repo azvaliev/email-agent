@@ -194,7 +194,7 @@ Handle two events in `public/sw.js`:
 
 ## Implementation Order
 
-### Phase 1: PWA Foundation ✅
+### Phase 1: PWA Foundation
 
 - [x] Update `manifest.json` with `"display": "standalone"` and icons
 - [x] Create `use-pwa-status.ts` hook
@@ -205,11 +205,11 @@ Handle two events in `public/sw.js`:
 
 ### Phase 2: Push Infrastructure
 
-- [ ] Add VAPID env vars to `env.ts` and `.env.example`
-- [ ] Generate VAPID keys (`npx @pushforge/builder generate-vapid-keys`)
-- [ ] Install `@pushforge/builder`
-- [ ] Create database migration for `push_subscription`
-- [ ] Run migration and regenerate types
+- [x] Add VAPID env vars to `env.ts` and `.env.example`
+- [x] Generate VAPID keys (`npx @pushforge/builder generate-vapid-keys`)
+- [x] Install `@pushforge/builder`
+- [x] Create database migration for `push_subscription`
+- [x] Run migration and regenerate types
 
 ### Phase 3: Service Worker (Completed in Phase 1)
 

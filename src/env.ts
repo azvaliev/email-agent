@@ -9,6 +9,9 @@ const envSchema = z.object({
   GOOGLE_CLOUD_PROJECT: z.string().min(1),
   GMAIL_PUBSUB_TOPIC: z.string().startsWith("projects/"),
   GMAIL_PUBSUB_SERVICE_ACCOUNT_EMAIL: z.string().email(),
+  NEXT_PUBLIC_VAPID_PUBLIC_KEY: z.string().min(1),
+  VAPID_PRIVATE_JWK: z.string().startsWith("{"),
+  VAPID_SUBJECT: z.string().regex(/^(mailto:|https:\/\/)/),
 });
 
 export const env = envSchema.parse({
@@ -21,4 +24,7 @@ export const env = envSchema.parse({
   GMAIL_PUBSUB_TOPIC: process.env.GMAIL_PUBSUB_TOPIC,
   GMAIL_PUBSUB_SERVICE_ACCOUNT_EMAIL:
     process.env.GMAIL_PUBSUB_SERVICE_ACCOUNT_EMAIL,
+  NEXT_PUBLIC_VAPID_PUBLIC_KEY: process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY,
+  VAPID_PRIVATE_JWK: process.env.VAPID_PRIVATE_JWK,
+  VAPID_SUBJECT: process.env.VAPID_SUBJECT,
 });

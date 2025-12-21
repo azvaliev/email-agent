@@ -39,6 +39,16 @@ export interface GmailWatchRegistration {
   userId: string;
 }
 
+export interface PushSubscription {
+  auth: string;
+  createdAt: Generated<Timestamp>;
+  endpoint: string;
+  id: Generated<string>;
+  p256dh: string;
+  userAgent: string | null;
+  userId: string;
+}
+
 export interface Session {
   createdAt: Generated<Timestamp>;
   expiresAt: Timestamp;
@@ -72,6 +82,7 @@ export interface Verification {
 export interface DB {
   account: Account;
   gmailWatchRegistration: GmailWatchRegistration;
+  pushSubscription: PushSubscription;
   session: Session;
   user: User;
   verification: Verification;

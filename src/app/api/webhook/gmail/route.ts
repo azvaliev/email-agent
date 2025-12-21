@@ -116,7 +116,7 @@ export async function POST(request: NextRequest) {
  * Returns updated access token (or original if no renewal needed).
  */
 async function renewWatchIfExpiring(
-  account: Account,
+  account: AccountWithRefreshToken,
   registration: WatchRegistration,
   currentAccessToken: string | undefined,
 ): Promise<string | undefined> {
@@ -126,10 +126,7 @@ async function renewWatchIfExpiring(
     return currentAccessToken;
   }
 
-  const gmailClient = new GmailClient(
-    account.refreshToken!,
-    currentAccessToken,
-  );
+  const gmailClient = new GmailClient(account.refreshToken, currentAccessToken);
 
   const { accessToken, expiresAt } = await gmailClient.refreshAccessToken();
 

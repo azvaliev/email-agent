@@ -9,14 +9,14 @@ export async function up(db: Kysely<unknown>): Promise<void> {
         .notNull()
         .defaultTo(sql`gen_random_uuid()`),
     )
-    .addColumn("userId", "text", (col) =>
+    .addColumn("user_id", "text", (col) =>
       col.notNull().references("user.id").onDelete("cascade"),
     )
     .addColumn("endpoint", "text", (col) => col.notNull().unique())
     .addColumn("p256dh", "text", (col) => col.notNull())
     .addColumn("auth", "text", (col) => col.notNull())
-    .addColumn("userAgent", "text")
-    .addColumn("createdAt", sql`timestamptz`, (col) =>
+    .addColumn("user_agent", "text")
+    .addColumn("created_at", sql`timestamptz`, (col) =>
       col.notNull().defaultTo(sql`CURRENT_TIMESTAMP`),
     )
     .execute();
@@ -24,7 +24,7 @@ export async function up(db: Kysely<unknown>): Promise<void> {
   await db.schema
     .createIndex("push_subscription_user_id_idx")
     .on("push_subscription")
-    .column("userId")
+    .column("user_id")
     .execute();
 }
 

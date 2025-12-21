@@ -107,8 +107,16 @@ export function usePushNotifications(): UsePushNotificationsResult {
       const subscription = await getCurrentSubscription();
 
       if (subscription) {
-        await removeSubscriptionFromServer(subscription.endpoint);
-        await unsubscribeFromPush();
+        const removedFromServer =
+          await removeSubscriptionFromServer(subscription.endpoint);
+        if (!removedFromServer) {
+          return false;
+        }
+
+        const unsubscribed = await unsubscribeFromPush();
+        if (!unsubscribed) {
+          return false;
+        }
       }
 
       setStatus("unsubscribed");

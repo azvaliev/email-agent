@@ -91,6 +91,11 @@ Create a `usePWAStatus()` hook using `useMemo` (value won't change during sessio
 - A user can have multiple subscriptions (phone, tablet, desktop)
 - When a push fails with 410 Gone, delete the subscription
 
+**Indexes:**
+
+- `CREATE INDEX push_subscription_user_id_idx ON push_subscription(user_id)` - enables efficient queries fetching a user's subscriptions
+- `CREATE INDEX push_subscription_created_at_idx ON push_subscription(created_at)` - enables efficient age-based cleanup queries
+
 ---
 
 ## VAPID Keys

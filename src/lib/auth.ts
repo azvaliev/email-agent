@@ -129,7 +129,10 @@ export const auth = betterAuth({
               { err: error, accountId: account.id },
               "Failed to setup Gmail watch, rolling back account",
             );
-            await db.deleteFrom("account").where("id", "=", account.id).execute();
+            await db
+              .deleteFrom("account")
+              .where("id", "=", account.id)
+              .execute();
 
             throw new APIError("INTERNAL_SERVER_ERROR", {
               message: "Failed to setup Gmail notifications. Please try again.",

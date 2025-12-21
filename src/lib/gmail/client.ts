@@ -76,33 +76,37 @@ export class GmailClient {
   }
 
   /**
-   * List history records since the given historyId.
-   * Returns message IDs for newly added messages.
+   * Fetch all new messages since the given historyId.
+   * Combines listHistory + getMessage for each new message.
    */
-  async listHistory(startHistoryId: string): Promise<{
-    messageIds: string[];
-    historyId: string | null;
-  }> {
-    const messageIds: string[] = [];
+  async getNewMessages(startHistoryId: string) {
+    const messageIds = await this.listHistory(startHistoryId);
+    return Promise.all(messageIds.map((id) => this.getMessage(id)));
+  }
+
+  /**
+   * List history records since the given historyId.
+   * Returns deduplicated message IDs for newly added INBOX messages.
+   */
+  private async listHistory(startHistoryId: string): Promise<string[]> {
+    const messageIds = new Set<string>();
     let pageToken: string | undefined;
-    let latestHistoryId: string | null = null;
 
     do {
       const response = await this.gmail.users.history.list({
         userId: "me",
         startHistoryId,
         historyTypes: ["messageAdded"],
+        labelId: "INBOX",
         pageToken,
       });
-
-      latestHistoryId = response.data.historyId ?? null;
 
       if (response.data.history) {
         for (const record of response.data.history) {
           if (record.messagesAdded) {
             for (const added of record.messagesAdded) {
               if (added.message?.id) {
-                messageIds.push(added.message.id);
+                messageIds.add(added.message.id);
               }
             }
           }
@@ -112,7 +116,7 @@ export class GmailClient {
       pageToken = response.data.nextPageToken ?? undefined;
     } while (pageToken);
 
-    return { messageIds, historyId: latestHistoryId };
+    return [...messageIds];
   }
 
   /**

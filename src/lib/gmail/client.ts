@@ -252,7 +252,7 @@ export class GmailClient {
               { error, fileName: part.filename },
               "Failed to decode multipart message body",
             );
-            return null;
+            continue;
           }
         }
         // Nested multipart (e.g., multipart/alternative inside multipart/mixed)

@@ -216,7 +216,7 @@ async function parseAndValidatePayload(
   );
 
   if (!registration) {
-    logger.error(
+    logger.warn(
       { emailAddress: notification.emailAddress },
       "No registration found for email address",
     );

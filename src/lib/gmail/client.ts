@@ -1,7 +1,6 @@
 import { google, gmail_v1 } from "googleapis";
 import { OAuth2Client } from "google-auth-library";
 import { env } from "@app/env";
-import { getLogger } from "../logger";
 
 type ValidGmailMessage = Omit<gmail_v1.Schema$Message, "id"> & { id: string };
 type ParsedGmailMessage = {
@@ -162,68 +161,64 @@ export class GmailClient {
     };
   }
 
-  /**
-   * Get a message by ID with full content.
-   */
   static parseMessage({
     payload,
     id,
     threadId,
     snippet,
   }: ValidGmailMessage): ParsedGmailMessage {
-    const logger = getLogger({ category: "message-parser" });
-
     const headers = payload?.headers ?? [];
     const getHeader = (name: string) =>
       headers.find((h) => h.name?.toLowerCase() === name.toLowerCase())
         ?.value ?? null;
 
-    const body = this.extractGmailMessageBody(payload);
-    const from = getHeader("From");
-    const [fromUser, fromEmail] = ((): [string | null, string | null] => {
-      let name: string | null = null;
-      let email: string | null = null;
-
-      if (!from) {
-        logger.error("Email was missing from header");
-        return [name, email];
-      }
-
-      const emailStart = from.indexOf("<");
-      if (emailStart === -1) {
-        logger.error("Email starting character < missing from header");
-        return [name, email];
-      }
-
-      name = from.slice(0, emailStart).trim() || null;
-      const emailEnd = from.lastIndexOf(">");
-
-      if (emailEnd === -1 || emailEnd < emailStart) {
-        return [name, null];
-      }
-
-      email = from.slice(emailStart + 1, emailEnd).trim() || null;
-
-      return [name, email];
-    })();
+    const from = this.parseFromHeader(getHeader("From"));
 
     return {
       id,
       threadId: threadId ?? null,
       subject: getHeader("Subject"),
-      from,
-      fromUser,
-      fromEmail,
+      from: getHeader("From"),
+      fromUser: from.user,
+      fromEmail: from.email,
       date: getHeader("Date"),
-      body,
+      body: this.extractGmailMessageBody(payload),
       snippet: snippet ?? null,
     };
   }
 
-  /**
-   * Extract plain text body from message payload.
-   * Handles both simple and multipart messages.
-   */
+  static parseFromHeader(from: string | null): {
+    user: string | null;
+    email: string | null;
+  } {
+    if (!from) {
+      return { user: null, email: null };
+    }
+
+    const emailStart = from.indexOf("<");
+
+    // Bare email: "user@example.com"
+    if (emailStart === -1) {
+      return { user: null, email: from.trim() || null };
+    }
+
+    // Standard format: "Display Name <user@example.com>"
+    let user = from.slice(0, emailStart).trim() || null;
+
+    // Strip surrounding quotes: "\"John Doe\"" -> "John Doe"
+    if (user && user.startsWith('"') && user.endsWith('"')) {
+      user = user.slice(1, -1) || null;
+    }
+
+    const emailEnd = from.lastIndexOf(">");
+    if (emailEnd === -1 || emailEnd < emailStart) {
+      return { user, email: null };
+    }
+
+    const email = from.slice(emailStart + 1, emailEnd).trim() || null;
+    return { user, email };
+  }
+
   private static extractGmailMessageBody(
     payload: gmail_v1.Schema$MessagePart | undefined,
   ): string | null {

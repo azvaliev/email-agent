@@ -85,7 +85,10 @@ self.addEventListener("notificationclick", (event) => {
   event.notification.close();
 
   const url = event.notification.data?.url ?? "/dashboard";
-  const targetUrl = new URL(url, self.location.origin).href;
+  // If URL starts with '/', treat as relative; otherwise assume absolute
+  const targetUrl = url.startsWith("/")
+    ? new URL(url, self.location.origin).href
+    : url;
 
   event.waitUntil(
     self.clients.matchAll({ type: "window" }).then((clients) => {

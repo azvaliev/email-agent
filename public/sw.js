@@ -87,7 +87,7 @@ self.addEventListener("notificationclick", (event) => {
   console.error("notificationclick", event);
   console.error("data", event.notification.data);
 
-  const url = event.notification.data?.url ?? "/dashboard";
+  const url = decodeURI(event.notification.data?.url ?? "/dashboard");
   // If URL starts with '/', treat as relative; otherwise assume absolute
   const targetUrl = url.startsWith("/")
     ? new URL(url, self.location.origin).href

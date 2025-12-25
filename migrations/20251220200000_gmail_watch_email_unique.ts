@@ -22,5 +22,6 @@ export async function down(db: Kysely<unknown>): Promise<void> {
     .createIndex("gmail_watch_registration_email_address_idx")
     .on("gmailWatchRegistration")
     .column("emailAddress")
+    .unique()
     .execute();
 }

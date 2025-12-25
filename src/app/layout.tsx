@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import { Figtree, Geist_Mono } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 import { Providers } from "./providers";
 import { Toaster } from "@app/components/ui/sonner";
+import { ServiceWorkerRegister } from "@app/components/service-worker-register";
 
 const figtree = Figtree({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -51,6 +53,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${figtree.variable} ${geistMono.variable} antialiased`}>
+        <ServiceWorkerRegister />
         <Providers>{children}</Providers>
         <Toaster />
       </body>

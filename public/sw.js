@@ -1,6 +1,20 @@
 // @ts-check
 /// <reference lib="webworker" />
 
+/** @type {ServiceWorkerGlobalScope} */
+// @ts-expect-error self is not defined in this scope
+const sw = self;
+
+// Force the new service worker to activate immediately
+sw.addEventListener("install", (event) => {
+  event.waitUntil(sw.skipWaiting());
+});
+
+// Take control of all clients immediately
+sw.addEventListener("activate", (event) => {
+  event.waitUntil(sw.clients.claim());
+});
+
 /**
  * @typedef {Object} PushPayload
  * @property {string} title
@@ -47,7 +61,7 @@ function parsePushPayload(data) {
   };
 }
 
-self.addEventListener("push", (event) => {
+sw.addEventListener("push", (event) => {
   const handlePush = async () => {
     if (!event.data) {
       return;
@@ -75,13 +89,13 @@ self.addEventListener("push", (event) => {
       data: { url: payload.url },
     };
 
-    await self.registration.showNotification(payload.title, options);
+    await sw.registration.showNotification(payload.title, options);
   };
 
   event.waitUntil(handlePush());
 });
 
-self.addEventListener("notificationclick", (event) => {
+sw.addEventListener("notificationclick", (event) => {
   event.notification.close();
 
   console.error("notificationclick", event);
@@ -90,13 +104,13 @@ self.addEventListener("notificationclick", (event) => {
   const url = decodeURI(event.notification.data?.url ?? "/dashboard");
   // If URL starts with '/', treat as relative; otherwise assume absolute
   const targetUrl = url.startsWith("/")
-    ? new URL(url, self.location.origin).href
+    ? new URL(url, sw.location.origin).href
     : url;
 
-  console.error("clients.length", self.clients.length);
+  // Note: clients is an async API, length check removed
 
   event.waitUntil(
-    self.clients.matchAll({ type: "window" }).then((clients) => {
+    sw.clients.matchAll({ type: "window" }).then((clients) => {
       for (const client of clients) {
         console.error("client", client);
         if (client.url === targetUrl && "focus" in client) {
@@ -106,7 +120,7 @@ self.addEventListener("notificationclick", (event) => {
       }
 
       console.error("opening window", targetUrl);
-      return self.clients.openWindow(targetUrl);
+      return sw.clients.openWindow(targetUrl);
     }),
   );
 });

@@ -7,8 +7,8 @@ export async function up(db: Kysely<unknown>): Promise<void> {
 
   await db.schema
     .createIndex("gmail_watch_registration_email_address_idx")
-    .on("gmail_watch_registration")
-    .column("email_address")
+    .on("gmailWatchRegistration")
+    .column("emailAddress")
     .unique()
     .execute();
 }
@@ -20,7 +20,7 @@ export async function down(db: Kysely<unknown>): Promise<void> {
 
   await db.schema
     .createIndex("gmail_watch_registration_email_address_idx")
-    .on("gmail_watch_registration")
-    .column("email_address")
+    .on("gmailWatchRegistration")
+    .column("emailAddress")
     .execute();
 }

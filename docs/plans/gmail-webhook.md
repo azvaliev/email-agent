@@ -68,7 +68,7 @@ Gmail → Cloud Pub/Sub Topic → Push Subscription → /api/webhook/gmail → P
 - `user_id` FK → user.id ON DELETE CASCADE
 - `email_address` is indexed (for webhook lookups)
 
-**Convention:** Database uses snake_case columns. Kysely uses `CamelCasePlugin` to auto-convert, so TypeScript code uses camelCase (e.g., `emailAddress` → `email_address`).
+**Convention:** Database uses camelCase columns and `snake_case` table names.
 
 ---
 
@@ -216,8 +216,6 @@ export async function verifyPubSubJwt(
 ### 5. DBClient (`src/lib/db/client.ts`)
 
 Methods take only the parameters they need. The webhook handler looks up by email address, not user ID.
-
-**Note:** We use `CamelCasePlugin` in Kysely, so table/column names in code are camelCase while the database uses snake_case.
 
 ```typescript
 import { Kysely } from "kysely";

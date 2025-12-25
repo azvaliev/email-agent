@@ -4,6 +4,7 @@ import { GmailClient } from "@app/lib/gmail/client";
 import { dbClient } from "@app/lib/db/client";
 import { env } from "@app/env";
 import { getLogger } from "@app/lib/logger";
+import { sendToUser, buildAppleMailUrl } from "@app/lib/push/send-notification";
 import type { DB } from "@app/db/generated/schema";
 import type { Selectable } from "kysely";
 
@@ -95,6 +96,13 @@ export async function POST(request: NextRequest) {
         },
         "New email",
       );
+
+      await sendToUser(registration.userId, {
+        title: "Important Email",
+        body: "Tap to view",
+        url: buildAppleMailUrl(message.rfc822MessageId),
+        tag: message.threadId ?? undefined,
+      });
     }
   } catch (error) {
     logger.error(

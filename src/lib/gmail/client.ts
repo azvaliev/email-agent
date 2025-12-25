@@ -7,6 +7,11 @@ type ValidGmailMessage = Omit<gmail_v1.Schema$Message, "id"> & { id: string };
 type ParsedGmailMessage = {
   id: string;
   threadId: string | null;
+  /**
+   * RFC 5322 Message-ID header (e.g., "<CAE4kSWN=xxx@mail.gmail.com>").
+   * Used for Apple Mail deep links via the message:// URL scheme.
+   */
+  rfc822MessageId: string | null;
   subject: string | null;
   from: string | null;
   fromEmail: string | null;
@@ -180,6 +185,7 @@ export class GmailClient {
     return {
       id,
       threadId: threadId ?? null,
+      rfc822MessageId: getHeader("Message-ID"),
       subject: getHeader("Subject"),
       from: getHeader("From"),
       fromUser: from.user,

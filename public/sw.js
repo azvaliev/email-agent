@@ -84,19 +84,28 @@ self.addEventListener("push", (event) => {
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
 
+  console.error("notificationclick", event);
+  console.error("data", event.notification.data);
+
   const url = event.notification.data?.url ?? "/dashboard";
   // If URL starts with '/', treat as relative; otherwise assume absolute
   const targetUrl = url.startsWith("/")
     ? new URL(url, self.location.origin).href
     : url;
 
+  console.error("clients.length", self.clients.length);
+
   event.waitUntil(
     self.clients.matchAll({ type: "window" }).then((clients) => {
       for (const client of clients) {
+        console.error("client", client);
         if (client.url === targetUrl && "focus" in client) {
+          console.error("focusing client", client);
           return client.focus();
         }
       }
+
+      console.error("opening window", targetUrl);
       return self.clients.openWindow(targetUrl);
     }),
   );

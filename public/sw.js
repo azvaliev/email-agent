@@ -101,7 +101,7 @@ sw.addEventListener("notificationclick", (event) => {
   console.error("notificationclick", event);
   console.error("data", event.notification.data);
 
-  const url = decodeURI(event.notification.data?.url ?? "/dashboard");
+  const url = event.notification.data?.url ?? "/dashboard";
   // If URL starts with '/', treat as relative; otherwise assume absolute
   const targetUrl = url.startsWith("/")
     ? new URL(url, sw.location.origin).href
@@ -119,7 +119,8 @@ sw.addEventListener("notificationclick", (event) => {
         }
       }
 
-      console.error("opening window", targetUrl);
+      console.error("opening window", targetUrl, decodeURI(targetUrl));
+      sw.clients.openWindow(decodeURI(targetUrl));
       return sw.clients.openWindow(targetUrl);
     }),
   );

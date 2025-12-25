@@ -120,7 +120,7 @@ export async function sendToUser(
 }
 
 /**
- * Build an Apple Mail deep link URL from an RFC 5322 Message-ID.
+ * Build a web URL that redirects to an Apple Mail deep link.
  * Returns undefined if messageId is null/undefined.
  */
 export function buildAppleMailUrl(
@@ -129,5 +129,5 @@ export function buildAppleMailUrl(
   if (!rfc822MessageId) {
     return undefined;
   }
-  return `message://${encodeURIComponent(rfc822MessageId)}`;
+  return `/message/${encodeURIComponent(rfc822MessageId)}`;
 }

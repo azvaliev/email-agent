@@ -163,8 +163,6 @@ export class GmailClient {
       );
     }
 
-    console.error("getMessage", response.data);
-
     return {
       ...response.data,
       id: response.data.id ?? messageId,

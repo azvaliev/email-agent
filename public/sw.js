@@ -96,8 +96,6 @@ sw.addEventListener("push", (event) => {
 });
 
 sw.addEventListener("notificationclick", (event) => {
-  event.notification.close();
-
   console.error("notificationclick", event);
   console.error("data", event.notification.data);
 
@@ -120,8 +118,9 @@ sw.addEventListener("notificationclick", (event) => {
       }
 
       console.error("opening window", targetUrl, decodeURI(targetUrl));
-      sw.clients.openWindow(decodeURI(targetUrl));
       return sw.clients.openWindow(targetUrl);
     }),
   );
+
+  event.notification.close();
 });

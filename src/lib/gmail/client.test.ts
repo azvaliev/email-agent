@@ -33,12 +33,12 @@ describe("GmailClient", () => {
     });
 
     it("parses standard format with display name", () => {
-      expect(GmailClient.parseFromHeader("John Doe <john@example.com>")).toEqual(
-        {
-          user: "John Doe",
-          email: "john@example.com",
-        },
-      );
+      expect(
+        GmailClient.parseFromHeader("John Doe <john@example.com>"),
+      ).toEqual({
+        user: "John Doe",
+        email: "john@example.com",
+      });
     });
 
     it("parses quoted display name", () => {
@@ -76,12 +76,12 @@ describe("GmailClient", () => {
     });
 
     it("handles missing closing >", () => {
-      expect(
-        GmailClient.parseFromHeader("John Doe <john@example.com"),
-      ).toEqual({
-        user: "John Doe",
-        email: null,
-      });
+      expect(GmailClient.parseFromHeader("John Doe <john@example.com")).toEqual(
+        {
+          user: "John Doe",
+          email: null,
+        },
+      );
     });
   });
 

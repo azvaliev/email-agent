@@ -8,7 +8,9 @@ import { Button } from "@app/components/ui/button";
 export default function DashboardPage() {
   const { status } = usePushNotifications();
   const notificationsDisabled =
-    status === "unsubscribed" || status === "denied" || status === "unsupported";
+    status === "unsubscribed" ||
+    status === "denied" ||
+    status === "unsupported";
 
   return (
     <div className="flex flex-col gap-8">
@@ -48,4 +50,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-

@@ -2,11 +2,7 @@ import type { ReactNode } from "react";
 
 import { DashboardWrapper } from "@app/components/dashboard-wrapper";
 
-export default function DashboardLayout({
-  children,
-}: {
-  children: ReactNode;
-}) {
+export default function DashboardLayout({ children }: { children: ReactNode }) {
   return (
     <DashboardWrapper>
       <main className="min-h-screen bg-zinc-950 text-white">

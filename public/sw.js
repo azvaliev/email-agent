@@ -102,7 +102,8 @@ sw.addEventListener("notificationclick", (event) => {
     ? new URL(url, sw.location.origin).href
     : url;
 
-  // Note: clients is an async API, length check removed
+  // drop the notification
+  event.notification.close();
 
   event.waitUntil(
     sw.clients.matchAll({ type: "window" }).then((clients) => {
@@ -115,6 +116,4 @@ sw.addEventListener("notificationclick", (event) => {
       return sw.clients.openWindow(targetUrl);
     }),
   );
-
-  event.notification.close();
 });

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Settings } from "lucide-react";
 import { usePushNotifications } from "@app/lib/hooks/use-push-notifications";
 import { Button } from "@app/components/ui/button";
+import { ImportantEmailsList } from "@app/components/important-emails-list";
 
 export default function DashboardPage() {
   const { status } = usePushNotifications();
@@ -45,7 +46,16 @@ export default function DashboardPage() {
 
       {/* Dashboard Content */}
       <div className="flex flex-col gap-8">
-        {/* Dashboard content goes here */}
+        <div className="space-y-2">
+          <h2 className="text-lg font-medium text-zinc-200">
+            Important Emails
+          </h2>
+          <p className="text-sm text-zinc-400">
+            Your latest flagged emails from connected accounts
+          </p>
+        </div>
+
+        <ImportantEmailsList limit={5} showViewMore />
       </div>
     </div>
   );

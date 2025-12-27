@@ -5,11 +5,21 @@ import { getLogger } from "@app/lib/logger";
 
 const logger = getLogger({ category: "push-notification" });
 
+export type EmailData = {
+  messageId: string;
+  from: string;
+  fromUser: string | null;
+  fromEmail: string | null;
+  subject: string;
+  receivedAt: string;
+};
+
 export type NotificationPayload = {
   title: string;
   body: string;
   url?: string;
   tag?: string;
+  email: EmailData;
 };
 
 type PushSubscription = {

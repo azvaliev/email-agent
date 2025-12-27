@@ -43,7 +43,7 @@ export function LinkedAccountsList() {
   return (
     <div className="rounded-lg border border-zinc-800 bg-zinc-900/50 p-3 md:p-6">
       <div className="flex flex-col gap-4">
-        <div className="space-y-4">
+        <div className="space-y-2 md:space-y-4">
           {accounts.map((account) => (
             <div
               key={account.id}

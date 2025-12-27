@@ -108,6 +108,7 @@ describe("GmailClient", () => {
       expect(result).toEqual({
         id: "msg-123",
         threadId: "thread-456",
+        rfc822MessageId: null,
         subject: "Test Subject",
         from: "John Doe <john@example.com>",
         fromUser: "John Doe",

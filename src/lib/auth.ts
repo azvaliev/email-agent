@@ -99,16 +99,8 @@ export const auth = betterAuth({
               env.GMAIL_PUBSUB_TOPIC,
             );
 
-            // Get email from the user table
-            const user = await db
-              .selectFrom("user")
-              .where("id", "=", account.userId)
-              .select("email")
-              .executeTakeFirst();
-
-            if (!user?.email) {
-              throw new Error("User must have an email address");
-            }
+            // Get email from the Gmail API directly to ensure we have the correct one for this account
+            const profile = await gmailClient.getProfile();
 
             await db
               .insertInto("gmailWatchRegistration")
@@ -116,7 +108,7 @@ export const auth = betterAuth({
                 id: crypto.randomUUID(),
                 accountId: account.id,
                 userId: account.userId,
-                emailAddress: user.email,
+                emailAddress: profile.emailAddress,
                 historyId,
                 expiration,
                 createdAt: new Date(),

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@app/components/ui/button";
 import { NotificationToggle } from "@app/components/notification-toggle";
+import { LinkedAccountsList } from "@app/components/linked-accounts-list";
 
 export default function SettingsPage() {
   return (
@@ -29,6 +30,17 @@ export default function SettingsPage() {
 
         <div className="rounded-lg border border-zinc-800 bg-zinc-900/50 p-6">
           <NotificationToggle />
+        </div>
+
+        <div className="space-y-2">
+          <h2 className="text-lg font-medium text-zinc-200">Linked Accounts</h2>
+          <p className="text-sm text-zinc-400">
+            Manage your connected email accounts.
+          </p>
+        </div>
+
+        <div className="rounded-lg border border-zinc-800 bg-zinc-900/50 p-6">
+          <LinkedAccountsList />
         </div>
       </div>
     </div>

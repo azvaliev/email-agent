@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import Link from "next/link";
 import { ArrowLeft, Loader2, Mail } from "lucide-react";
 import { useLiveQuery } from "dexie-react-hooks";
@@ -13,6 +13,7 @@ const PAGE_SIZE = 20;
 
 export default function EmailsPage() {
   const [limit, setLimit] = useState(PAGE_SIZE);
+  const [isLoading, setIsLoading] = useState(false);
   const parentRef = useRef<HTMLDivElement>(null);
 
   const emails = useLiveQuery(
@@ -25,8 +26,13 @@ export default function EmailsPage() {
   const hasMore = emails && totalCount ? emails.length < totalCount : false;
 
   const loadMore = useCallback(() => {
+    setIsLoading(true);
     setLimit((prev) => prev + PAGE_SIZE);
   }, []);
+
+  useEffect(() => {
+    setIsLoading(false);
+  }, [emails?.length]);
 
   const rowVirtualizer = useVirtualizer({
     count: emails ? (hasMore ? emails.length + 1 : emails.length) : 0,
@@ -41,7 +47,8 @@ export default function EmailsPage() {
         lastItem &&
         emails &&
         lastItem.index >= emails.length - 1 &&
-        hasMore
+        hasMore &&
+        !isLoading
       ) {
         loadMore();
       }

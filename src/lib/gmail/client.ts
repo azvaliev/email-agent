@@ -40,6 +40,20 @@ export class GmailClient {
     this.gmail = google.gmail({ version: "v1", auth: this.oauth2Client });
   }
 
+  async getProfile(): Promise<{ emailAddress: string }> {
+    const response = await this.gmail.users.getProfile({
+      userId: "me",
+    });
+
+    if (!response.data.emailAddress) {
+      throw new Error("Failed to fetch user email address");
+    }
+
+    return {
+      emailAddress: response.data.emailAddress,
+    };
+  }
+
   async watch(
     topicName: string,
   ): Promise<{ historyId: string; expiration: Date }> {

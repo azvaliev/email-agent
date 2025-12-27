@@ -8,7 +8,7 @@ export function SignInWithGoogleButton() {
   const handleSignIn = async () => {
     const { error } = await signIn.social({
       provider: "google",
-      callbackURL: "/dashboard",
+      callbackURL: "/app/dashboard",
     });
 
     if (error) {

@@ -6,6 +6,18 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  async rewrites() {
+    return [
+      {
+        source: "/dashboard",
+        destination: "/app/dashboard",
+      },
+      {
+        source: "/dashboard/:path*",
+        destination: "/app/dashboard/:path*",
+      },
+    ];
+  },
 };
 
 export default nextConfig;

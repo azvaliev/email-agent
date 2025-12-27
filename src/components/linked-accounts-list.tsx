@@ -1,5 +1,8 @@
 "use client";
 
+import { useEffect } from "react";
+import { toast } from "sonner";
+
 import { useTRPC } from "@app/lib/trpc/client";
 import { LinkGoogleAccountButton } from "./link-google-account-button";
 import { Loader2, Mail } from "lucide-react";
@@ -8,9 +11,17 @@ import { useQuery } from "@tanstack/react-query";
 
 export function LinkedAccountsList() {
   const trpc = useTRPC();
-  const { data: accounts, isLoading } = useQuery(
-    trpc.account.list.queryOptions(),
-  );
+  const {
+    data: accounts,
+    isLoading,
+    error,
+  } = useQuery(trpc.account.list.queryOptions());
+
+  useEffect(() => {
+    if (error) {
+      toast.error(error?.message || "Failed to load linked accounts");
+    }
+  }, [error]);
 
   if (isLoading) {
     return (
@@ -21,7 +32,7 @@ export function LinkedAccountsList() {
     );
   }
 
-  if (!accounts) {
+  if (!accounts || error) {
     return null;
   }
 

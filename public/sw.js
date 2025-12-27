@@ -5,6 +5,15 @@
 // @ts-expect-error self is not defined in this scope
 const sw = self;
 
+// Load Dexie for IndexedDB access
+importScripts("https://unpkg.com/dexie@4.0.11/dist/dexie.min.js");
+
+// @ts-expect-error Dexie is loaded via importScripts
+const db = new Dexie("mailbeaver-emails");
+db.version(1).stores({
+  emails: "messageId, receivedAt",
+});
+
 // Force the new service worker to activate immediately
 sw.addEventListener("install", (event) => {
   event.waitUntil(sw.skipWaiting());
@@ -16,11 +25,22 @@ sw.addEventListener("activate", (event) => {
 });
 
 /**
+ * @typedef {Object} EmailData
+ * @property {string} messageId
+ * @property {string} from
+ * @property {string|null} fromUser
+ * @property {string|null} fromEmail
+ * @property {string} subject
+ * @property {string} receivedAt
+ */
+
+/**
  * @typedef {Object} PushPayload
  * @property {string} title
  * @property {string} body
  * @property {string} [url]
  * @property {string} [tag]
+ * @property {EmailData} email
  */
 
 /**
@@ -50,6 +70,37 @@ function parsePushPayload(data) {
     return { success: false, error: "Invalid 'tag' field" };
   }
 
+  if (typeof obj.email !== "object" || obj.email === null) {
+    return { success: false, error: "Missing or invalid 'email' field" };
+  }
+
+  const email = /** @type {Record<string, unknown>} */ (obj.email);
+
+  if (typeof email.messageId !== "string" || email.messageId.length === 0) {
+    return {
+      success: false,
+      error: "Missing or invalid 'email.messageId' field",
+    };
+  }
+
+  if (typeof email.from !== "string" || email.from.length === 0) {
+    return { success: false, error: "Missing or invalid 'email.from' field" };
+  }
+
+  if (typeof email.subject !== "string" || email.subject.length === 0) {
+    return {
+      success: false,
+      error: "Missing or invalid 'email.subject' field",
+    };
+  }
+
+  if (typeof email.receivedAt !== "string" || email.receivedAt.length === 0) {
+    return {
+      success: false,
+      error: "Missing or invalid 'email.receivedAt' field",
+    };
+  }
+
   return {
     success: true,
     data: {
@@ -57,6 +108,14 @@ function parsePushPayload(data) {
       body: obj.body,
       url: obj.url,
       tag: obj.tag,
+      email: {
+        messageId: email.messageId,
+        from: email.from,
+        fromUser: typeof email.fromUser === "string" ? email.fromUser : null,
+        fromEmail: typeof email.fromEmail === "string" ? email.fromEmail : null,
+        subject: email.subject,
+        receivedAt: email.receivedAt,
+      },
     },
   };
 }
@@ -83,6 +142,18 @@ sw.addEventListener("push", (event) => {
     }
 
     const payload = result.data;
+
+    // Write email to IndexedDB before showing notification
+    await db.emails.put({
+      messageId: payload.email.messageId,
+      from: payload.email.from,
+      fromUser: payload.email.fromUser,
+      fromEmail: payload.email.fromEmail,
+      subject: payload.email.subject,
+      receivedAt: payload.email.receivedAt,
+      url: payload.url,
+    });
+
     const options = {
       body: payload.body,
       tag: payload.tag,

@@ -85,6 +85,19 @@ export async function POST(request: NextRequest) {
     );
 
     for (const message of messages) {
+      if (!message.from || !message.subject || !message.rfc822MessageId) {
+        logger.info(
+          {
+            messageId: message.id,
+            hasFrom: !!message.from,
+            hasSubject: !!message.subject,
+            hasRfc822MessageId: !!message.rfc822MessageId,
+          },
+          "Skipping message - missing required fields",
+        );
+        continue;
+      }
+
       logger.info(
         {
           emailAddress: notification.emailAddress,
@@ -98,10 +111,18 @@ export async function POST(request: NextRequest) {
       );
 
       await sendToUser(registration.userId, {
-        title: "Important Email",
-        body: "Tap to view",
+        title: message.fromUser ?? message.fromEmail ?? message.from,
+        body: message.subject,
         url: buildAppleMailUrl(message.rfc822MessageId),
         tag: message.threadId ?? undefined,
+        email: {
+          messageId: message.rfc822MessageId,
+          from: message.from,
+          fromUser: message.fromUser ?? null,
+          fromEmail: message.fromEmail ?? null,
+          subject: message.subject,
+          receivedAt: message.date ?? new Date().toISOString(),
+        },
       });
     }
   } catch (error) {

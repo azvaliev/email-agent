@@ -10,3 +10,8 @@ We're using better auth - see @https://www.better-auth.com/llms.txt for backgrou
 ## tRPC
 
 When you add/change a route signature in tRPC, either add/update an explicit return type on the procedure
+
+## Planning
+
+When you write plans, avoid using code snippets. Numbered lists with rough workflow in pseudocode is generally better.
+If neccesary, try to keep them small and light

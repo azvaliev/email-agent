@@ -41,7 +41,7 @@ export function LinkedAccountsList() {
   }
 
   return (
-    <div className="rounded-lg border border-zinc-800 bg-zinc-900/50 p-6">
+    <div className="rounded-lg border border-zinc-800 bg-zinc-900/50 p-3 md:p-6">
       <div className="flex flex-col gap-4">
         <div className="space-y-4">
           {accounts.map((account) => (
@@ -49,7 +49,7 @@ export function LinkedAccountsList() {
               key={account.id}
               className="flex items-center justify-between rounded-lg border border-zinc-800 bg-zinc-900/50 p-4"
             >
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-1.5 md:gap-3">
                 <div className="flex size-8 items-center justify-center rounded-full bg-zinc-800">
                   <Mail className="size-4 text-zinc-400" />
                 </div>
